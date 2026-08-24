@@ -1,0 +1,43 @@
+name: Artifact smoke test
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  artifact-round-trip:
+    name: Upload and download release artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create harmless release-shaped files
+        run: |
+          mkdir -p dist
+          printf 'zeeho-git-graph artifact smoke test\n' > dist/zeeho-git-graph-smoke.vsix
+          cd dist
+          sha256sum zeeho-git-graph-smoke.vsix > SHA256SUMS
+
+      - name: Upload release-shaped artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: zeeho-git-graph-smoke-${{ github.run_id }}
+          path: |
+            dist/*.vsix
+            dist/SHA256SUMS
+
+      - name: Download artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: zeeho-git-graph-smoke-${{ github.run_id }}
+          path: downloaded
+
+      - name: Verify artifact contents and checksum
+        run: |
+          test -f downloaded/zeeho-git-graph-smoke.vsix
+          test -f downloaded/SHA256SUMS
+          cd downloaded
+          sha256sum --check SHA256SUMS
