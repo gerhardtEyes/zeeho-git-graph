@@ -1,7 +1,7 @@
 {
   "name": "zeeho-git-graph",
   "displayName": "Zeeho Git Graph",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "%description%",
   "categories": [
     "SCM Providers",
@@ -37,7 +37,7 @@
     "type": "git",
     "url": "https://github.com/gerhardtEyes/zeeho-git-graph.git"
   },
-  "publisher": "TanZiHao",
+  "publisher": "Tamzeeho",
   "main": "./out/extension.js",
   "scripts": {
     "typecheck": "tsc -p . --noEmit && tsc -p ./src --noEmit && tsc -p ./src/webview --noEmit && tsc -p ./tests --noEmit && tsc -p ./tests/webview --noEmit && tsc -p ./tests-ext --noEmit",
