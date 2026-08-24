@@ -9,7 +9,7 @@ async function openView() {
 
 suite("GitGraphView", () => {
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension("TanZiHao.zeeho-git-graph");
+    const ext = vscode.extensions.getExtension("Tamzeeho.zeeho-git-graph");
     await ext?.activate();
   });
 
