@@ -8,14 +8,14 @@ or publishing to an extension registry still requires explicit release approval.
 - Repository target: `gerhardtEyes/zeeho-git-graph`
 - Package name: `zeeho-git-graph`
 - Display name: `Zeeho Git Graph`
-- Target version: `0.6.0`
+- Target version: `0.6.1`
 - Copyright holder for new modifications: `tamzeeho`
-- VS Marketplace Publisher ID: `TanZiHao`
-- VS Marketplace Publisher display name: `Tamzeeho`
-- Final extension ID: `TanZiHao.zeeho-git-graph`
+- VS Marketplace Publisher ID: `Tamzeeho`
+- VS Marketplace Publisher display name: `TanZiHao`
+- Final extension ID: `Tamzeeho.zeeho-git-graph`
 
 The VS Marketplace Publisher has been created. `package.json#publisher` and the extension-host test
-must continue to match the immutable Publisher ID `TanZiHao`; the display name `Tamzeeho` is not the
+must continue to match the immutable Publisher ID `Tamzeeho`; the display name `TanZiHao` is not the
 value used for the extension identifier.
 
 ## Repository preparation
@@ -39,10 +39,10 @@ value used for the extension identifier.
 
 ### VS Code Marketplace
 
-1. Confirm access to the existing `TanZiHao` Marketplace Publisher.
-2. Set the GitHub Actions repository variable `VS_MARKETPLACE_PUBLISHER` to `TanZiHao`.
+1. Confirm access to the existing `Tamzeeho` Marketplace Publisher.
+2. Set the GitHub Actions repository variable `VS_MARKETPLACE_PUBLISHER` to `Tamzeeho`.
 3. Add the `VS_MARKETPLACE_TOKEN` repository secret required by the release workflow.
-4. Confirm the final extension ID is `TanZiHao.zeeho-git-graph`.
+4. Confirm the final extension ID is `Tamzeeho.zeeho-git-graph`.
 
 ### Open VSX
 
@@ -62,11 +62,11 @@ pnpm run typecheck
 pnpm run l10n:check
 pnpm run test
 pnpm run test:ext
-PUBLIC_RELEASE=true EXPECTED_PUBLISHER=TanZiHao EXPECTED_VERSION=0.6.0 pnpm run release:check
+PUBLIC_RELEASE=true EXPECTED_PUBLISHER=Tamzeeho EXPECTED_VERSION=0.6.1 pnpm run release:check
 pnpm run package
-pnpm dlx @vscode/vsce package --no-dependencies --out zeeho-git-graph-0.6.0.vsix
-unzip -t zeeho-git-graph-0.6.0.vsix
-shasum -a 256 zeeho-git-graph-0.6.0.vsix
+pnpm dlx @vscode/vsce package --no-dependencies --out zeeho-git-graph-0.6.1.vsix
+unzip -t zeeho-git-graph-0.6.1.vsix
+shasum -a 256 zeeho-git-graph-0.6.1.vsix
 ```
 
 Also verify that the VSIX contains `LICENSE`, `THIRD_PARTY_NOTICES.md`, and generated legal-notice
@@ -80,8 +80,8 @@ files, and does not contain credentials or private development files.
 4. Create the tag only after CI is green:
 
    ```sh
-   git tag -s v0.6.0 -m "Zeeho Git Graph v0.6.0"
-   git push origin v0.6.0
+   git tag -s v0.6.1 -m "Zeeho Git Graph v0.6.1"
+   git push origin v0.6.1
    ```
 
 5. Verify the GitHub Release, VS Marketplace, and Open VSX listings all use the same VSIX and
