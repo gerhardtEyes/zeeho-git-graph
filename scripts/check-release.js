@@ -43,8 +43,8 @@ requireCondition(
 );
 requireCondition(packageJson.publisher !== "asispts", "upstream publisher must not be used");
 requireCondition(
-  packageJson.publisher === "TanZiHao",
-  "publisher must be the registered VS Marketplace Publisher ID (TanZiHao)"
+  packageJson.publisher === "Tamzeeho",
+  "publisher must be the registered VS Marketplace Publisher ID (Tamzeeho)"
 );
 requireCondition(
   packageJson.repository?.url === "https://github.com/gerhardtEyes/zeeho-git-graph.git",
