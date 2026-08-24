@@ -41,7 +41,7 @@ Until the first public release, install a locally built VSIX:
 pnpm install --frozen-lockfile
 pnpm run package
 pnpm dlx @vscode/vsce package --no-dependencies
-code --install-extension zeeho-git-graph-0.6.1.vsix --force
+code --install-extension zeeho-git-graph-0.6.2.vsix --force
 ```
 
 ## Configuration
