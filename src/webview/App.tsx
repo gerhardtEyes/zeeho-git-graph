@@ -19,12 +19,12 @@ export function App() {
   }
 
   return (
-    <>
+    <div class="git-graph-app flex h-screen min-h-0 flex-col overflow-hidden">
       <MainHeader repos={repos} />
       <GraphView />
       <ScrollShadow />
       <ContextMenu />
       <Dialog />
-    </>
+    </div>
   );
 }

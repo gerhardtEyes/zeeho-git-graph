@@ -1,7 +1,7 @@
 {
-  "name": "neo-git-graph",
-  "displayName": "(neo) Git Graph",
-  "version": "0.5.0",
+  "name": "zeeho-git-graph",
+  "displayName": "Zeeho Git Graph",
+  "version": "0.6.0",
   "description": "%description%",
   "categories": [
     "SCM Providers",
@@ -14,16 +14,20 @@
     "git history",
     "git log"
   ],
-  "homepage": "https://github.com/asispts/neo-git-graph",
+  "homepage": "https://github.com/gerhardtEyes/zeeho-git-graph",
   "bugs": {
-    "url": "https://github.com/asispts/neo-git-graph/issues"
+    "url": "https://github.com/gerhardtEyes/zeeho-git-graph/issues"
   },
   "license": "MIT",
   "author": {
-    "name": "Asis Pattisahusiwa",
-    "email": "asispts@gmail.com"
+    "name": "tamzeeho",
+    "url": "https://github.com/gerhardtEyes"
   },
   "contributors": [
+    {
+      "name": "Asis Pattisahusiwa",
+      "url": "https://github.com/asispts"
+    },
     {
       "name": "Michael Hutchison",
       "url": "https://github.com/mhutchie"
@@ -31,17 +35,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/asispts/neo-git-graph.git"
+    "url": "https://github.com/gerhardtEyes/zeeho-git-graph.git"
   },
-  "sponsor": {
-    "url": "https://github.com/sponsors/asispts"
-  },
-  "publisher": "asispts",
+  "publisher": "TanZiHao",
   "main": "./out/extension.js",
   "scripts": {
     "typecheck": "tsc -p . --noEmit && tsc -p ./src --noEmit && tsc -p ./src/webview --noEmit && tsc -p ./tests --noEmit && tsc -p ./tests/webview --noEmit && tsc -p ./tests-ext --noEmit",
-    "vscode:prepublish": "pnpm run clean && pnpm run package",
-    "package": "pnpm run typecheck && pnpm run lint && node esbuild.js --production",
+    "vscode:prepublish": "node scripts/prepublish.js",
+    "package": "pnpm run release:check && pnpm run typecheck && pnpm run lint && node esbuild.js --production",
     "clean": "node -e \"require('fs').rmSync('out',{recursive:true,force:true})\"",
     "compile": "pnpm run clean && node esbuild.js",
     "test": "vitest run --project backend && vitest run --project extension && vitest run --project webview",
@@ -53,6 +54,7 @@
     "format:fix": "oxfmt .",
     "lint": "oxlint",
     "lint:fix": "oxlint --fix",
+    "release:check": "node scripts/check-release.js",
     "l10n:export": "vscode-l10n-dev export --outDir ./l10n ./src && oxfmt ./l10n/bundle.l10n.json",
     "l10n:check": "pnpm run l10n:export && git diff --exit-code ./l10n/bundle.l10n.json && node scripts/check-l10n.js"
   },
@@ -82,10 +84,29 @@
   },
   "l10n": "./l10n",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "zeeho-git-graph",
+          "title": "Zeeho Git Graph",
+          "icon": "resources/webview-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "zeeho-git-graph": [
+        {
+          "type": "webview",
+          "id": "zeeho-git-graph.view",
+          "name": "Git Graph",
+          "contextualTitle": "Zeeho Git Graph"
+        }
+      ]
+    },
     "commands": [
       {
-        "category": "(neo) Git Graph",
-        "command": "neo-git-graph.view",
+        "category": "Zeeho Git Graph",
+        "command": "zeeho-git-graph.view",
         "title": "%command.view%",
         "icon": {
           "light": "resources/webview-icon-light.svg",
@@ -93,30 +114,54 @@
         }
       },
       {
-        "category": "(neo) Git Graph",
-        "command": "neo-git-graph.clearAvatarCache",
+        "category": "Zeeho Git Graph",
+        "command": "zeeho-git-graph.clearAvatarCache",
         "title": "%command.clearAvatarCache%"
+      },
+      {
+        "category": "Zeeho Git Graph",
+        "command": "zeeho-git-graph.toggleInlineBlame",
+        "title": "%command.toggleInlineBlame%",
+        "icon": "$(git-commit)"
+      },
+      {
+        "category": "Zeeho Git Graph",
+        "command": "zeeho-git-graph.toggleAutoOpenDirtyFileDiff",
+        "title": "%command.toggleAutoOpenDirtyFileDiff%",
+        "icon": "$(git-compare)"
       }
     ],
     "menus": {
       "scm/title": [
         {
-          "command": "neo-git-graph.view",
+          "command": "zeeho-git-graph.view",
           "group": "navigation",
           "when": "scmProvider == git"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "zeeho-git-graph.toggleInlineBlame",
+          "group": "navigation@10",
+          "when": "view == zeeho-git-graph.view"
+        },
+        {
+          "command": "zeeho-git-graph.toggleAutoOpenDirtyFileDiff",
+          "group": "navigation@11",
+          "when": "view == zeeho-git-graph.view"
         }
       ]
     },
     "configuration": {
       "type": "object",
-      "title": "(neo) Git Graph",
+      "title": "Zeeho Git Graph",
       "properties": {
-        "neo-git-graph.autoCenterCommitDetailsView": {
+        "zeeho-git-graph.autoCenterCommitDetailsView": {
           "type": "boolean",
           "default": true,
           "description": "%config.autoCenterCommitDetailsView%"
         },
-        "neo-git-graph.dateFormat": {
+        "zeeho-git-graph.dateFormat": {
           "type": "string",
           "enum": [
             "Date & Time",
@@ -131,7 +176,7 @@
           "default": "Date & Time",
           "description": "%config.dateFormat%"
         },
-        "neo-git-graph.dateType": {
+        "zeeho-git-graph.dateType": {
           "type": "string",
           "enum": [
             "Author Date",
@@ -144,12 +189,12 @@
           "default": "Author Date",
           "description": "%config.dateType%"
         },
-        "neo-git-graph.fetchAvatars": {
+        "zeeho-git-graph.fetchAvatars": {
           "type": "boolean",
           "default": false,
           "description": "%config.fetchAvatars%"
         },
-        "neo-git-graph.graphColours": {
+        "zeeho-git-graph.graphColours": {
           "type": "array",
           "items": {
             "type": "string",
@@ -172,7 +217,7 @@
           ],
           "description": "%config.graphColours%"
         },
-        "neo-git-graph.graphStyle": {
+        "zeeho-git-graph.graphStyle": {
           "type": "string",
           "enum": [
             "rounded",
@@ -185,37 +230,53 @@
           "default": "rounded",
           "description": "%config.graphStyle%"
         },
-        "neo-git-graph.initialLoadCommits": {
+        "zeeho-git-graph.initialLoadCommits": {
           "type": "number",
           "default": 300,
           "description": "%config.initialLoadCommits%"
         },
-        "neo-git-graph.loadMoreCommits": {
+        "zeeho-git-graph.inlineBlame.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "%config.inlineBlame.enabled%"
+        },
+        "zeeho-git-graph.inlineBlame.maxLines": {
+          "type": "number",
+          "default": 3000,
+          "minimum": 1,
+          "description": "%config.inlineBlame.maxLines%"
+        },
+        "zeeho-git-graph.loadMoreCommits": {
           "type": "number",
           "default": 100,
           "description": "%config.loadMoreCommits%"
         },
-        "neo-git-graph.maxDepthOfRepoSearch": {
+        "zeeho-git-graph.maxDepthOfRepoSearch": {
           "type": "number",
           "default": 0,
           "description": "%config.maxDepthOfRepoSearch%"
         },
-        "neo-git-graph.showCurrentBranchByDefault": {
+        "zeeho-git-graph.showCurrentBranchByDefault": {
           "type": "boolean",
           "default": false,
           "description": "%config.showCurrentBranchByDefault%"
         },
-        "neo-git-graph.showStatusBarItem": {
+        "zeeho-git-graph.autoOpenDirtyFileDiff": {
+          "type": "boolean",
+          "default": false,
+          "description": "%config.autoOpenDirtyFileDiff%"
+        },
+        "zeeho-git-graph.showStatusBarItem": {
           "type": "boolean",
           "default": true,
           "description": "%config.showStatusBarItem%"
         },
-        "neo-git-graph.showUncommittedChanges": {
+        "zeeho-git-graph.showUncommittedChanges": {
           "type": "boolean",
           "default": true,
           "description": "%config.showUncommittedChanges%"
         },
-        "neo-git-graph.tabIconColourTheme": {
+        "zeeho-git-graph.tabIconColourTheme": {
           "type": "string",
           "enum": [
             "colour",

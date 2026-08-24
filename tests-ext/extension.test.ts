@@ -2,23 +2,14 @@ import * as assert from "node:assert";
 
 import * as vscode from "vscode";
 
-function isPanelOpen() {
-  return vscode.window.tabGroups.all
-    .flatMap((g) => g.tabs)
-    .some((t) => t.label === "(neo) Git Graph");
+async function openView() {
+  await vscode.commands.executeCommand("zeeho-git-graph.view");
+  await new Promise((r) => setTimeout(r, 300));
 }
 
-async function openPanel() {
-  await vscode.commands.executeCommand("neo-git-graph.view");
-  const deadline = Date.now() + 2000;
-  while (!isPanelOpen() && Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 50)); // eslint-disable-line no-await-in-loop
-  }
-}
-
-suite("GitGraphPanel", () => {
+suite("GitGraphView", () => {
   suiteSetup(async () => {
-    const ext = vscode.extensions.getExtension("asispts.neo-git-graph");
+    const ext = vscode.extensions.getExtension("TanZiHao.zeeho-git-graph");
     await ext?.activate();
   });
 
@@ -31,32 +22,62 @@ suite("GitGraphPanel", () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
-  test("view command opens the panel", async () => {
-    await openPanel();
-    assert.ok(isPanelOpen(), "Panel should be visible after executing view command");
+  test("contributes a focus command for the sidebar view", async () => {
+    const commands = await vscode.commands.getCommands(true);
+
+    assert.ok(commands.includes("zeeho-git-graph.view.focus"));
   });
 
-  test("running view command a second time reveals rather than opening a new tab", async () => {
-    await openPanel();
-    assert.ok(isPanelOpen());
+  test("registers inline blame and automatic diff toggle commands", async () => {
+    const commands = await vscode.commands.getCommands(true);
 
+    assert.ok(commands.includes("zeeho-git-graph.toggleInlineBlame"));
+    assert.ok(commands.includes("zeeho-git-graph.toggleAutoOpenDirtyFileDiff"));
+  });
+
+  test("toggle commands update their settings", async () => {
+    const configuration = vscode.workspace.getConfiguration("zeeho-git-graph");
+    const inlineBefore = configuration.get<boolean>("inlineBlame.enabled", true);
+    const autoDiffBefore = configuration.get<boolean>("autoOpenDirtyFileDiff", false);
+
+    try {
+      await vscode.commands.executeCommand("zeeho-git-graph.toggleInlineBlame");
+      await vscode.commands.executeCommand("zeeho-git-graph.toggleAutoOpenDirtyFileDiff");
+
+      const updated = vscode.workspace.getConfiguration("zeeho-git-graph");
+      assert.strictEqual(updated.get("inlineBlame.enabled"), !inlineBefore);
+      assert.strictEqual(updated.get("autoOpenDirtyFileDiff"), !autoDiffBefore);
+    } finally {
+      await configuration.update(
+        "inlineBlame.enabled",
+        inlineBefore,
+        vscode.ConfigurationTarget.Global
+      );
+      await configuration.update(
+        "autoOpenDirtyFileDiff",
+        autoDiffBefore,
+        vscode.ConfigurationTarget.Global
+      );
+    }
+  });
+
+  test("view command opens the sidebar without an editor tab", async () => {
     const tabsBefore = vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
-    await vscode.commands.executeCommand("neo-git-graph.view");
-    await new Promise((r) => setTimeout(r, 300));
+
+    await openView();
+
     const tabsAfter = vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
 
-    assert.strictEqual(tabsAfter, tabsBefore, "Second invocation should not open a new tab");
+    assert.strictEqual(tabsAfter, tabsBefore, "Sidebar view should not open an editor tab");
   });
 
-  test("closing the panel and running view command opens a fresh panel", async () => {
-    await openPanel();
-    assert.ok(isPanelOpen());
+  test("running view command again reuses the sidebar view", async () => {
+    await openView();
+    const tabsBefore = vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
 
-    await vscode.commands.executeCommand("workbench.action.closeAllEditors");
-    await new Promise((r) => setTimeout(r, 200));
-    assert.ok(!isPanelOpen(), "Panel should be closed");
+    await openView();
 
-    await openPanel();
-    assert.ok(isPanelOpen(), "Panel should reopen after running view command again");
+    const tabsAfter = vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
+    assert.strictEqual(tabsAfter, tabsBefore, "Second invocation should not open a new tab");
   });
 });

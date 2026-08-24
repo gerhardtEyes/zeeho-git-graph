@@ -5,21 +5,31 @@ import * as vscode from "vscode";
 import { AvatarManager } from "@/avatarManager";
 import { GitClient, gitClientFactory } from "@/backend/gitClient";
 import { findGitRepos } from "@/backend/queries/repoSearch";
-import { buildExtensionUri } from "@/backend/utils/path";
 import { config } from "@/config";
 import { DiffDocProvider } from "@/diffDocProvider";
-import { EXTENSION_NAME } from "@/extension/constant/const";
+import { registerAutoDiffController } from "@/extension/autoDiffController";
+import { COMMANDS, EXTENSION_NAMESPACE, GIT_GRAPH_VIEW_ID } from "@/extension/constant/const";
+import { registerInlineBlameController } from "@/extension/inlineBlameController";
 import { createMaxDepthTracker } from "@/extension/maxDepthTracker";
-import { registerMessageHandlers } from "@/extension/messageHandler";
 import { createRepoManager, RepoManager } from "@/extension/repoManager";
 import { logger } from "@/extension/utils/logger";
-import { WebviewBridge, webviewBridgeFactory } from "@/extension/webviewBridge";
-import { createWebviewPanel, WebviewPanel } from "@/extension/webviewPanel";
+import { GitGraphViewProvider } from "@/extension/webviewViewProvider";
 import { ExtensionState } from "@/extensionState";
-import { RepoFileWatcher } from "@/repoFileWatcher";
 import { StatusBarItem } from "@/statusBarItem";
 
 export type InitExtension = typeof initExtension;
+
+async function toggleBooleanSetting(key: string, current: boolean) {
+  const configuration = vscode.workspace.getConfiguration(EXTENSION_NAMESPACE);
+  const inspected = configuration.inspect<boolean>(key);
+  const target =
+    inspected?.workspaceFolderValue !== undefined
+      ? vscode.ConfigurationTarget.WorkspaceFolder
+      : inspected?.workspaceValue !== undefined
+        ? vscode.ConfigurationTarget.Workspace
+        : vscode.ConfigurationTarget.Global;
+  await configuration.update(key, !current, target);
+}
 
 function registerViewCommand(
   ctx: vscode.ExtensionContext,
@@ -28,60 +38,23 @@ function registerViewCommand(
   avatarManager: AvatarManager,
   gitClient: GitClient
 ) {
-  let currentPanel: WebviewPanel | undefined;
+  const provider = new GitGraphViewProvider({
+    config,
+    gitClient,
+    repoManager,
+    extensionState,
+    avatarManager,
+    extensionPath: ctx.extensionPath
+  });
+
   ctx.subscriptions.push(
-    vscode.commands.registerCommand("neo-git-graph.view", () => {
-      if (currentPanel) {
-        currentPanel.reveal(vscode.window.activeTextEditor?.viewColumn);
-        return;
-      }
-
-      const vsPanel = vscode.window.createWebviewPanel(
-        "neo-git-graph",
-        EXTENSION_NAME,
-        vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One,
-        {
-          enableScripts: true,
-          localResourceRoots: [
-            buildExtensionUri(ctx.extensionPath, "media"),
-            buildExtensionUri(ctx.extensionPath, "out")
-          ]
-        }
-      );
-
-      let bridge!: WebviewBridge;
-      const repoFileWatcher = new RepoFileWatcher(() => {
-        if (vsPanel.visible) {
-          bridge.post({ command: "refresh" });
-        }
-      });
-      bridge = webviewBridgeFactory(vsPanel.webview, repoFileWatcher);
-      avatarManager.registerBridge(bridge.post.bind(bridge));
-
-      const { onPanelShown } = registerMessageHandlers(bridge, {
-        config,
-        gitClient,
-        repoManager,
-        extensionState,
-        avatarManager,
-        repoFileWatcher
-      });
-
-      currentPanel = createWebviewPanel({
-        panel: vsPanel,
-        bridge,
-        config,
-        repoFileWatcher,
-        extensionPath: ctx.extensionPath,
-        extensionState,
-        avatarManager,
-        repoManager,
-        onDispose: () => {
-          currentPanel = undefined;
-        },
-        onPanelShown
-      });
-    })
+    provider,
+    vscode.window.registerWebviewViewProvider(GIT_GRAPH_VIEW_ID, provider, {
+      webviewOptions: { retainContextWhenHidden: true }
+    }),
+    vscode.commands.registerCommand(COMMANDS.view, () =>
+      vscode.commands.executeCommand(`${GIT_GRAPH_VIEW_ID}.focus`)
+    )
   );
 }
 
@@ -97,7 +70,7 @@ export function initExtension(
     const avatarManager = new AvatarManager(config.gitPath, extensionState);
 
     ctx.subscriptions.push(
-      vscode.commands.registerCommand("neo-git-graph.clearAvatarCache", () => {
+      vscode.commands.registerCommand(COMMANDS.clearAvatarCache, () => {
         avatarManager.clearCache();
       })
     );
@@ -115,6 +88,17 @@ export function initExtension(
     repoManager.setRepos(repos);
     repoManager.sendRepos();
     registerViewCommand(ctx, repoManager, extensionState, avatarManager, gitClient);
+    const getRepoPaths = () => Object.keys(repoManager.getRepos());
+    ctx.subscriptions.push(
+      registerInlineBlameController({ config, getRepoPaths }),
+      registerAutoDiffController({ config, getRepoPaths }),
+      vscode.commands.registerCommand(COMMANDS.toggleInlineBlame, () =>
+        toggleBooleanSetting("inlineBlame.enabled", config.inlineBlameEnabled())
+      ),
+      vscode.commands.registerCommand(COMMANDS.toggleAutoOpenDirtyFileDiff, () =>
+        toggleBooleanSetting("autoOpenDirtyFileDiff", config.autoOpenDirtyFileDiff())
+      )
+    );
 
     const gitWatcher = vscode.workspace.createFileSystemWatcher("**/.git");
     ctx.subscriptions.push(
@@ -159,11 +143,11 @@ export function initExtension(
         }
       }),
       vscode.workspace.onDidChangeConfiguration((e) => {
-        if (e.affectsConfiguration("neo-git-graph.showStatusBarItem")) {
+        if (e.affectsConfiguration(`${EXTENSION_NAMESPACE}.showStatusBarItem`)) {
           statusBarItem.refresh();
         } else if (e.affectsConfiguration("git.path")) {
           gitClient.setGitPath(config.gitPath());
-        } else if (e.affectsConfiguration("neo-git-graph.maxDepthOfRepoSearch")) {
+        } else if (e.affectsConfiguration(`${EXTENSION_NAMESPACE}.maxDepthOfRepoSearch`)) {
           if (maxDepth.increased(config.maxDepthOfRepoSearch())) {
             const paths = (vscode.workspace.workspaceFolders ?? []).map((f) => f.uri.fsPath);
             void findGitRepos(paths, config.gitPath(), config.maxDepthOfRepoSearch()).then(

@@ -5,6 +5,7 @@
 # Whitelist files
 !LICENSE
 !CHANGELOG.md
+!THIRD_PARTY_NOTICES.md
 !package.nls*.json
 !out/
 !l10n/

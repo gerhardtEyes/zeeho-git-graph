@@ -1,24 +1,17 @@
-import { Fragment } from "preact";
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo } from "preact/hooks";
 
 import type { GitCommitNode } from "@/backend/types";
-import { CommitDetails } from "@/webview/components/commit/CommitDetails";
 import { CommitGraph } from "@/webview/components/commit/CommitGraph";
 import { CommitRow } from "@/webview/components/commit/CommitRow";
 import type { ColumnResize } from "@/webview/components/commit/useColumnResize";
 import { useColumnResize } from "@/webview/components/commit/useColumnResize";
-import {
-  COMMIT_DETAILS_HEIGHT,
-  TABLE_HEADER_HEIGHT,
-  UNCOMMITTED_CHANGES
-} from "@/webview/constants";
+import { TABLE_HEADER_HEIGHT, UNCOMMITTED_CHANGES } from "@/webview/constants";
 import { GRAPH_PADDING } from "@/webview/graph/constants";
 import { computeGraphLayout } from "@/webview/graph/layout";
 import { branchColour } from "@/webview/graph/palette";
-import type { GraphExpansion } from "@/webview/graph/types";
 import { graphWidth } from "@/webview/graph/utils";
 import { toggleCommitDetails } from "@/webview/lib/actions";
-import { columnWidths, commitDetails, expandedCommit } from "@/webview/lib/stores";
+import { columnWidths, expandedCommit } from "@/webview/lib/stores";
 
 type CommitTableProps = {
   commits: Array<GitCommitNode>;
@@ -30,13 +23,21 @@ const HEADER_CLASS =
   "relative h-8 overflow-hidden border-b border-line px-3 text-left font-semibold" +
   " text-ellipsis whitespace-nowrap";
 
-const HANDLE_CLASS = "absolute top-0 h-full w-1.5 cursor-col-resize";
+const HANDLE_CLASS = "git-graph-resize-handle absolute top-0 h-full w-1.5 cursor-col-resize";
+
+const COLUMN_CLASS = [
+  "git-graph-column-graph",
+  "git-graph-column-description",
+  "git-graph-column-date",
+  "git-graph-column-author",
+  "git-graph-column-commit"
+];
 
 /** Distance over which the graph fades out, where the column cuts it off. */
 const GRAPH_FADE = 12;
 
 const GRAPH_CLIP =
-  `width: var(--col-graph); top: ${TABLE_HEADER_HEIGHT}px;` +
+  `width: var(--visible-graph-column, var(--col-graph)); top: ${TABLE_HEADER_HEIGHT}px;` +
   ` mask-image: linear-gradient(to right, black calc(100% - ${GRAPH_FADE}px), transparent)`;
 
 /** Keep room for the graph, and for the column title when the graph is narrow. */
@@ -80,8 +81,19 @@ export function CommitTable({ commits, head, headBranch }: CommitTableProps) {
 
   const expandedHash = expandedCommit.value;
   const expandedRow = commits.findIndex((commit) => commit.hash === expandedHash);
-  const expansion: GraphExpansion | null =
-    expandedRow === -1 ? null : { row: expandedRow, height: COMMIT_DETAILS_HEIGHT };
+
+  useEffect(() => {
+    if (expandedHash === null) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      document.getElementById(`git-commit-${expandedHash}`)?.scrollIntoView({
+        block: viewState.autoCenterCommitDetailsView ? "center" : "nearest"
+      });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [expandedHash]);
 
   const titles = [
     window.l10n.graph,
@@ -92,9 +104,9 @@ export function CommitTable({ commits, head, headBranch }: CommitTableProps) {
   ];
 
   return (
-    <div class="relative" ref={resize.containerRef}>
+    <div class="git-graph-table relative min-w-0" ref={resize.containerRef}>
       <div class="pointer-events-none absolute left-0 overflow-hidden" style={GRAPH_CLIP}>
-        <CommitGraph layout={layout} expansion={expansion} />
+        <CommitGraph layout={layout} expansion={null} />
       </div>
       <table
         class={`w-full cursor-default border-collapse text-ui select-none ${
@@ -102,16 +114,19 @@ export function CommitTable({ commits, head, headBranch }: CommitTableProps) {
         }`}
       >
         <colgroup>
-          <col style="width: var(--col-graph)" />
+          <col
+            class={COLUMN_CLASS[0]}
+            style="width: var(--visible-graph-column, var(--col-graph))"
+          />
           <col />
-          <col style="width: var(--col-date)" />
-          <col style="width: var(--col-author)" />
-          <col style="width: var(--col-commit)" />
+          <col class={COLUMN_CLASS[2]} style="width: var(--col-date)" />
+          <col class={COLUMN_CLASS[3]} style="width: var(--col-author)" />
+          <col class={COLUMN_CLASS[4]} style="width: var(--col-commit)" />
         </colgroup>
         <thead>
           <tr ref={resize.headRef} class={resize.resizing ? "cursor-col-resize" : ""}>
             {titles.map((title, index) => (
-              <th key={title} class={HEADER_CLASS}>
+              <th key={title} class={`${HEADER_CLASS} ${COLUMN_CLASS[index]}`}>
                 {index > 0 && <ResizeHandle boundary={index - 1} side="left" resize={resize} />}
                 {title}
                 {index < titles.length - 1 && (
@@ -123,22 +138,20 @@ export function CommitTable({ commits, head, headBranch }: CommitTableProps) {
         </thead>
         <tbody>
           {commits.map((commit, index) => (
-            <Fragment key={commit.hash}>
-              <CommitRow
-                commit={commit}
-                isHead={commit.hash === head}
-                headBranch={headBranch}
-                messages={messages}
-                colour={branchColour(layout.vertices[index].colour)}
-                expanded={index === expandedRow}
-                onSelect={
-                  commit.hash === UNCOMMITTED_CHANGES
-                    ? undefined
-                    : () => toggleCommitDetails(commit.hash)
-                }
-              />
-              {index === expandedRow && <CommitDetails details={commitDetails.value} />}
-            </Fragment>
+            <CommitRow
+              key={commit.hash}
+              commit={commit}
+              isHead={commit.hash === head}
+              headBranch={headBranch}
+              messages={messages}
+              colour={branchColour(layout.vertices[index].colour)}
+              expanded={index === expandedRow}
+              onSelect={
+                commit.hash === UNCOMMITTED_CHANGES
+                  ? undefined
+                  : () => toggleCommitDetails(commit.hash)
+              }
+            />
           ))}
         </tbody>
       </table>

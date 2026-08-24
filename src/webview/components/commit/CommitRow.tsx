@@ -75,6 +75,8 @@ export function CommitRow({
 
   return (
     <tr
+      id={`git-commit-${commit.hash}`}
+      aria-selected={expanded}
       class={rowClass(isHead, expanded, onSelect !== undefined, menuOpen)}
       style={colour === undefined ? undefined : `--color-graph: ${colour}`}
       onClick={onSelect}
@@ -84,8 +86,10 @@ export function CommitRow({
           : (event) => openContextMenu(event, source, commitMenu(commit, messages))
       }
     >
-      <td class={CELL_CLASS} />
-      <td class={`${CELL_CLASS} w-full max-w-0 pl-2.5 ${isHead ? "shadow-head" : ""}`}>
+      <td class={`${CELL_CLASS} git-graph-column-graph`} />
+      <td
+        class={`${CELL_CLASS} git-graph-column-description w-full max-w-0 pl-2.5 ${isHead ? "shadow-head" : ""}`}
+      >
         {isHead && (
           <span class="mt-1.75 mr-1.25 inline-block size-1.5 box-content rounded-full border-2 border-graph align-top" />
         )}
@@ -98,13 +102,16 @@ export function CommitRow({
         ))}
         {isHead || uncommitted ? <b>{message}</b> : message}
       </td>
-      <td class={CELL_CLASS} title={date.title}>
+      <td class={`${CELL_CLASS} git-graph-column-date`} title={date.title}>
         {date.value}
       </td>
-      <td class={`${CELL_CLASS} max-w-31`} title={`${commit.author} <${commit.email}>`}>
+      <td
+        class={`${CELL_CLASS} git-graph-column-author max-w-31`}
+        title={`${commit.author} <${commit.email}>`}
+      >
         {commit.author}
       </td>
-      <td class={`${CELL_CLASS} font-mono`} title={commit.hash}>
+      <td class={`${CELL_CLASS} git-graph-column-commit font-mono`} title={commit.hash}>
         {abbrevCommit(commit.hash)}
       </td>
     </tr>

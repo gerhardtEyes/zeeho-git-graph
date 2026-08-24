@@ -1,12 +1,13 @@
 import * as vscode from "vscode";
 
 import { DateType } from "./backend/types";
+import { EXTENSION_NAMESPACE } from "./extension/constant/const";
 import { DateFormat, GraphStyle } from "./types";
 
 type TabIconColourTheme = "colour" | "grey";
 
 function getConfig<T>(key: string, defaultValue: T): T {
-  return vscode.workspace.getConfiguration("neo-git-graph").get(key, defaultValue);
+  return vscode.workspace.getConfiguration(EXTENSION_NAMESPACE).get(key, defaultValue);
 }
 
 export const config = {
@@ -30,9 +31,12 @@ export const config = {
     ),
   graphStyle: (): GraphStyle => getConfig("graphStyle", "rounded"),
   initialLoadCommits: (): number => getConfig("initialLoadCommits", 300),
+  inlineBlameEnabled: (): boolean => getConfig("inlineBlame.enabled", true),
+  inlineBlameMaxLines: (): number => Math.max(1, getConfig("inlineBlame.maxLines", 3000)),
   loadMoreCommits: (): number => getConfig("loadMoreCommits", 75),
   maxDepthOfRepoSearch: (): number => getConfig("maxDepthOfRepoSearch", 0),
   showCurrentBranchByDefault: (): boolean => getConfig("showCurrentBranchByDefault", false),
+  autoOpenDirtyFileDiff: (): boolean => getConfig("autoOpenDirtyFileDiff", false),
   showStatusBarItem: (): boolean => getConfig("showStatusBarItem", true),
   showUncommittedChanges: (): boolean => getConfig("showUncommittedChanges", true),
   tabIconColourTheme: (): TabIconColourTheme => getConfig("tabIconColourTheme", "colour"),

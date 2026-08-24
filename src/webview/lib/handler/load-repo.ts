@@ -20,6 +20,8 @@ export function handleLoadRepos(msg: LoadRepoMessage) {
 
     if (next !== undefined) {
       selectRepo(next);
+    } else {
+      selectedRepo.value = undefined;
     }
   });
 }

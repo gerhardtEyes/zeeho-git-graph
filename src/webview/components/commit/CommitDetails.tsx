@@ -1,125 +1,69 @@
-import type { ComponentChildren, RefObject } from "preact";
-import { useEffect, useMemo, useRef } from "preact/hooks";
-
 import type { GitCommitDetails } from "@/backend/types";
-import { FileTree } from "@/webview/components/commit/FileTree";
+import { abbrevCommit } from "@/backend/utils/string";
+import { ChangedFileList } from "@/webview/components/commit/FileTree";
 import { Icon } from "@/webview/components/ui/Icons";
 import { Loading } from "@/webview/components/ui/Loading";
-import { COMMIT_DETAILS_HEIGHT, ROW_HEIGHT } from "@/webview/constants";
 import { closeCommitDetails } from "@/webview/lib/actions";
-import { getFullDate } from "@/webview/utils/date";
-import { buildFileTree } from "@/webview/utils/fileTree";
-
-/** Gap kept between the details view and the edge of the window, in pixels. */
-const SCROLL_GAP = 8;
-
-/** Height of the line that closes the view off, in pixels. */
-const SEPARATOR_HEIGHT = 2;
-
-/** Scroll the details view into view, the way the user configured it. */
-function useScrollIntoView(row: RefObject<HTMLTableRowElement>) {
-  useEffect(() => {
-    if (row.current === null) {
-      return;
-    }
-
-    const box = row.current.getBoundingClientRect();
-
-    if (viewState.autoCenterCommitDetailsView) {
-      window.scrollBy({ top: box.top + box.height / 2 - window.innerHeight / 2 });
-      return;
-    }
-
-    // Keep the commit row above the details view visible as well.
-    const above = box.top - ROW_HEIGHT - SCROLL_GAP;
-    if (above < 0) {
-      window.scrollBy({ top: above });
-    } else if (box.bottom + SCROLL_GAP > window.innerHeight) {
-      window.scrollBy({ top: box.bottom + SCROLL_GAP - window.innerHeight });
-    }
-  }, [row]);
-}
-
-/** One "Label: {0}" row of the summary, with the label in bold. */
-function DetailRow({ template, children }: { template: string; children: ComponentChildren }) {
-  const [label, after = ""] = template.split("{0}");
-
-  return (
-    <div class="truncate">
-      <b>{label}</b>
-      {children}
-      {after}
-    </div>
-  );
-}
+import { getCommitDate } from "@/webview/utils/date";
+import { format } from "@/webview/utils/format";
 
 function Summary({ details }: { details: GitCommitDetails }) {
+  const subject = details.body.split(/\r?\n/, 1)[0] || abbrevCommit(details.hash);
+  const date = getCommitDate(details.date);
+
   return (
-    <div class="w-9/20 shrink-0 overflow-auto border-x border-line p-2.5 select-text">
-      <DetailRow template={window.l10n.detailCommit}>{details.hash}</DetailRow>
-      <DetailRow template={window.l10n.detailParents}>{details.parents.join(", ")}</DetailRow>
-      <DetailRow template={window.l10n.detailAuthor}>
-        {details.author} &lt;
-        <a class="text-inherit underline" href={`mailto:${encodeURIComponent(details.email)}`}>
-          {details.email}
-        </a>
-        &gt;
-      </DetailRow>
-      <DetailRow template={window.l10n.detailDate}>{getFullDate(details.date)}</DetailRow>
-      <DetailRow template={window.l10n.detailCommitter}>{details.committer}</DetailRow>
-      <p class="mt-4 whitespace-pre-wrap">{details.body}</p>
+    <div class="git-graph-details-summary min-w-0 grow select-text">
+      <div class="truncate font-semibold" title={details.body}>
+        {subject}
+      </div>
+      <div class="mt-0.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+        <span class="truncate" title={`${details.author} <${details.email}>`}>
+          {details.author}
+        </span>
+        <span aria-hidden="true">•</span>
+        <span class="shrink-0" title={date.title}>
+          {date.value}
+        </span>
+        <code class="ml-auto shrink-0" title={details.hash}>
+          {abbrevCommit(details.hash)}
+        </code>
+      </div>
     </div>
   );
 }
 
-/**
- * The details of one commit, shown as a row of the commit table under the
- * commit it belongs to. Its height is fixed, because the graph is drawn to it.
- */
+/** Commit details in a fixed pane below the independently scrolling graph. */
 export function CommitDetails({ details }: { details: GitCommitDetails | null }) {
-  const row = useRef<HTMLTableRowElement>(null);
-  useScrollIntoView(row);
-
-  const nodes = useMemo(
-    () => (details === null ? [] : buildFileTree(details.fileChanges)),
-    [details]
-  );
+  const fileCount = details?.fileChanges.length ?? 0;
 
   return (
-    <tr ref={row} style={`height: ${COMMIT_DETAILS_HEIGHT}px`}>
-      <td />
-      <td
-        colSpan={4}
-        class="relative bg-btn p-0 align-top text-ui leading-4.5 whitespace-normal after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-line"
+    <section class="git-graph-details-pane relative flex shrink-0 flex-col overflow-hidden border-t border-line bg-editor text-ui leading-4.5 whitespace-normal">
+      <div class="flex min-h-12 shrink-0 items-center gap-2 border-b border-line-soft bg-btn px-2 py-1.5 pr-9">
+        {details === null ? <span>{window.l10n.loading}</span> : <Summary details={details} />}
+      </div>
+      {details === null ? (
+        <Loading />
+      ) : (
+        <>
+          <div class="shrink-0 px-2 py-1 text-xs font-semibold text-muted uppercase">
+            {format(window.l10n.changedFiles, fileCount)}
+          </div>
+          <div class="git-graph-details-files min-h-0 grow overflow-auto border-t border-line-soft">
+            <ChangedFileList files={details.fileChanges} commitHash={details.hash} />
+          </div>
+        </>
+      )}
+      <button
+        type="button"
+        class="absolute top-1.5 right-1.5 cursor-pointer opacity-60 hover:opacity-100"
+        title={window.l10n.close}
+        aria-label={window.l10n.close}
+        onClick={closeCommitDetails}
       >
-        <div
-          class="overflow-hidden"
-          style={`height: ${COMMIT_DETAILS_HEIGHT - SEPARATOR_HEIGHT}px`}
-        >
-          {details === null ? (
-            <Loading />
-          ) : (
-            <div class="flex h-full">
-              <Summary details={details} />
-              {/* The right margin keeps the scrollbar clear of the close button. */}
-              <div class="mr-8 grow overflow-x-hidden overflow-y-scroll border-r border-line py-1">
-                <FileTree nodes={nodes} commitHash={details.hash} />
-              </div>
-            </div>
-          )}
-        </div>
-        <button
-          type="button"
-          class="absolute top-1 right-1 cursor-pointer opacity-60 hover:opacity-100"
-          title={window.l10n.close}
-          aria-label={window.l10n.close}
-          onClick={closeCommitDetails}
-        >
-          <Icon class="size-6" viewBox="0 0 12 16">
-            <path d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z" />
-          </Icon>
-        </button>
-      </td>
-    </tr>
+        <Icon class="size-5" viewBox="0 0 12 16">
+          <path d="M7.48 8l3.75 3.75-1.48 1.48L6 9.48l-3.75 3.75-1.48-1.48L4.52 8 .77 4.25l1.48-1.48L6 6.52l3.75-3.75 1.48 1.48L7.48 8z" />
+        </Icon>
+      </button>
+    </section>
   );
 }

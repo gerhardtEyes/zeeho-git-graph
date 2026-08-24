@@ -3,14 +3,14 @@ import * as vscode from "vscode";
 import { findGitRepos } from "@/backend/queries/repoSearch";
 import { getGitVersion } from "@/backend/utils/git";
 import { config } from "@/config";
+import { EXTENSION_NAME } from "@/extension/constant/const";
 import { initExtension } from "@/extension/initExtension";
 import { logger } from "@/extension/utils/logger";
-import { watchForRepos } from "@/extension/watchForRepos";
 import { StatusBarItem } from "@/statusBarItem";
 
 export async function activate(ctx: vscode.ExtensionContext) {
   logger.init(ctx);
-  logger.log("Starting Neo Git Graph ...");
+  logger.log(`Starting ${EXTENSION_NAME} ...`);
 
   const gitPath = config.gitPath();
   const gitVersion = await getGitVersion(gitPath);
@@ -29,14 +29,12 @@ export async function activate(ctx: vscode.ExtensionContext) {
 
   if (repoDirs.length > 0) {
     logger.log(`Found ${repoDirs.length} repo(s)`);
-    initExtension(ctx, repoDirs, statusBarItem);
-    logger.log("Started Neo Git Graph - Ready to use!");
-    return;
+  } else {
+    logger.log("No repos found");
   }
 
-  logger.log("No repos found");
-  logger.log("Watching for new repos ...");
-  ctx.subscriptions.push(watchForRepos(ctx, initExtension, statusBarItem));
+  initExtension(ctx, repoDirs, statusBarItem);
+  logger.log(`Started ${EXTENSION_NAME} - Ready to use!`);
 }
 
 export function deactivate() {}

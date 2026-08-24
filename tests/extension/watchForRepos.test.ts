@@ -31,7 +31,7 @@ const mock = vi.hoisted(() => {
       },
       getConfiguration: (section: string) => ({
         get: (key: string, def: unknown) => {
-          if (section === "neo-git-graph" && key === "maxDepthOfRepoSearch") {
+          if (section === "zeeho-git-graph" && key === "maxDepthOfRepoSearch") {
             return maxDepthVal;
           }
           if (section === "git" && key === "path") {
@@ -182,7 +182,7 @@ describe("watchForRepos", () => {
       mock.setMaxDepth(0); // same as the tracker's current value → maxDepthIncreased() = false
       watcher = watchForRepos(ctx, onReposFound, mockStatusBarItem);
 
-      mock.fireConfigChange("neo-git-graph.maxDepthOfRepoSearch");
+      mock.fireConfigChange("zeeho-git-graph.maxDepthOfRepoSearch");
 
       expect(onReposFound).not.toHaveBeenCalled();
     });
@@ -192,7 +192,7 @@ describe("watchForRepos", () => {
       watcher = watchForRepos(ctx, onReposFound, mockStatusBarItem); // tracker initializes at 0
       mock.setMaxDepth(5); // increase after tracker is created
 
-      mock.fireConfigChange("neo-git-graph.maxDepthOfRepoSearch");
+      mock.fireConfigChange("zeeho-git-graph.maxDepthOfRepoSearch");
 
       await vi.waitFor(() => expect(onReposFound).toHaveBeenCalledOnce());
     });
@@ -201,7 +201,7 @@ describe("watchForRepos", () => {
       mock.setFolders([repoDir]);
       watcher = watchForRepos(ctx, onReposFound, mockStatusBarItem);
 
-      mock.fireConfigChange("neo-git-graph.graphStyle");
+      mock.fireConfigChange("zeeho-git-graph.graphStyle");
 
       expect(onReposFound).not.toHaveBeenCalled();
     });
@@ -224,10 +224,10 @@ describe("watchForRepos", () => {
   });
 
   describe("error commands (shown before any repo is found)", () => {
-    it("neo-git-graph.view shows a modal error", async () => {
+    it("zeeho-git-graph.view shows a modal error", async () => {
       watcher = watchForRepos(ctx, onReposFound, mockStatusBarItem);
 
-      await mock.invokeCommand("neo-git-graph.view");
+      await mock.invokeCommand("zeeho-git-graph.view");
 
       expect(mock.showErrorMessage).toHaveBeenCalledOnce();
       expect(mock.showErrorMessage).toHaveBeenCalledWith(
@@ -236,10 +236,10 @@ describe("watchForRepos", () => {
       );
     });
 
-    it("neo-git-graph.clearAvatarCache shows a modal error", async () => {
+    it("zeeho-git-graph.clearAvatarCache shows a modal error", async () => {
       watcher = watchForRepos(ctx, onReposFound, mockStatusBarItem);
 
-      await mock.invokeCommand("neo-git-graph.clearAvatarCache");
+      await mock.invokeCommand("zeeho-git-graph.clearAvatarCache");
 
       expect(mock.showErrorMessage).toHaveBeenCalledOnce();
       expect(mock.showErrorMessage).toHaveBeenCalledWith(

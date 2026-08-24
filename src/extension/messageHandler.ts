@@ -196,7 +196,7 @@ export function registerMessageHandlers(
   });
 
   return {
-    onPanelShown: () => {
+    onViewShown: () => {
       currentRepo = null;
     }
   };

@@ -25,11 +25,12 @@ export function getWebviewLocalizedStrings() {
     date: vscode.l10n.t("Date"),
     author: vscode.l10n.t("Author"),
     commit: vscode.l10n.t("Commit"),
+    changedFiles: vscode.l10n.t("Changes ({0})"),
     noCommits: vscode.l10n.t("No commits yet"),
     createFirstCommit: vscode.l10n.t("Create the first commit to start the graph."),
 
     // Error messages
-    unableToLoad: vscode.l10n.t("Unable to load Git Graph"),
+    unableToLoad: vscode.l10n.t("Unable to load Zeeho Git Graph"),
     portableGitHint: vscode.l10n.t(
       'If you are using a portable Git installation, make sure you have set the Visual Studio Code Setting "git.path" to the path of your portable installation (e.g. "C:\\Program Files\\Git\\bin\\git.exe" on Windows).'
     ),

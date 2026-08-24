@@ -52,6 +52,12 @@
   --color-git-modified: var(--vscode-gitDecoration-modifiedResourceForeground);
   --color-git-deleted: var(--vscode-gitDecoration-deletedResourceForeground);
 
+  /* Stable file-status colours for commit details; avoid yellow theme decorations. */
+  --color-file-added: var(--vscode-charts-green, #89d185);
+  --color-file-modified: var(--vscode-charts-blue, #75beff);
+  --color-file-deleted: var(--vscode-charts-red, #f14c4c);
+  --color-file-renamed: var(--vscode-charts-purple, #b180d7);
+
   --color-editor: var(--vscode-editor-background);
   --color-row-head: var(--vscode-list-inactiveSelectionBackground);
   --color-row-hover: var(--vscode-list-hoverBackground);
@@ -77,5 +83,88 @@
     animation: scroll-shadow linear both;
     animation-range: 0 1px;
     animation-timeline: scroll(root block);
+  }
+
+  .git-graph-scroll-region {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .git-graph-details-pane {
+    height: min(34vh, 320px);
+    min-height: 190px;
+    box-shadow: 0 -6px 12px -8px var(--vscode-widget-shadow);
+  }
+
+  .git-graph-details-files {
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (max-width: 720px) {
+  .git-graph-table {
+    --visible-graph-column: min(var(--col-graph), max(56px, 42vw));
+  }
+
+  .git-graph-column-author,
+  .git-graph-column-commit {
+    display: none;
+  }
+
+  .git-graph-resize-handle {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .git-graph-toolbar {
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+    padding-block: 8px;
+  }
+
+  .git-graph-toolbar > button {
+    align-self: flex-start;
+  }
+
+  .git-graph-toolbar-filters {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .git-graph-toolbar-filters > div {
+    width: 100%;
+  }
+
+  .git-graph-toolbar-filters > div > .relative {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .git-graph-column-date {
+    display: none;
+  }
+
+  .git-graph-details-pane {
+    height: min(38vh, 320px);
+    min-height: 210px;
+  }
+
+  .git-graph-details-files {
+    font-size: 12px;
+  }
+
+  .git-file-add-del {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .git-graph-details-pane {
+    height: min(42vh, 340px);
   }
 }

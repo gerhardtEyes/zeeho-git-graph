@@ -3,16 +3,17 @@ import { useState } from "preact/hooks";
 import type { GitFileChange } from "@/backend/types";
 import { Icon } from "@/webview/components/ui/Icons";
 import { viewDiff } from "@/webview/lib/actions";
+import { isCSharpFile, splitFilePath } from "@/webview/utils/filePresentation";
 import type { FileTreeNode } from "@/webview/utils/fileTree";
 
 const ICON_CLASS = "mr-2 size-3.25 shrink-0 fill-fg opacity-60";
 const ENTRY_CLASS = "flex w-full items-center overflow-hidden text-left whitespace-nowrap";
 
 const FILE_COLOUR: Record<GitFileChange["type"], string> = {
-  A: "text-git-added",
-  D: "text-git-deleted",
-  M: "text-git-modified",
-  R: "text-git-modified"
+  A: "text-file-added",
+  D: "text-file-deleted",
+  M: "text-file-modified",
+  R: "text-file-renamed"
 };
 
 function FolderIcon({ open }: { open: boolean }) {
@@ -31,7 +32,18 @@ function FolderIcon({ open }: { open: boolean }) {
   );
 }
 
-function FileIcon() {
+function FileIcon({ filePath }: { filePath: string }) {
+  if (isCSharpFile(filePath)) {
+    return (
+      <span
+        class="mr-2 flex h-3.5 w-4.5 shrink-0 items-center justify-center rounded-xs border border-file-modified/60 bg-file-modified/15 text-[8px] leading-none font-bold tracking-tight text-file-modified"
+        aria-hidden="true"
+      >
+        CS
+      </span>
+    );
+  }
+
   return (
     <Icon class={ICON_CLASS} viewBox="0 0 30 30">
       <path d="M24.707,8.793l-6.5-6.5C18.019,2.105,17.765,2,17.5,2H7C5.895,2,5,2.895,5,4v22c0,1.105,0.895,2,2,2h16c1.105,0,2-0.895,2-2 V9.5C25,9.235,24.895,8.981,24.707,8.793z M18,10c-0.552,0-1-0.448-1-1V3.904L23.096,10H18z" />
@@ -49,7 +61,7 @@ function FileAddDel({ file }: { file: GitFileChange }) {
   const deletions = file.deletions;
 
   return (
-    <span class="ml-2 text-fg">
+    <span class="git-file-add-del ml-2 shrink-0 text-fg">
       (
       <span
         class="cursor-help px-0.75 text-git-added"
@@ -78,26 +90,43 @@ function FileAddDel({ file }: { file: GitFileChange }) {
 function FileEntry({
   name,
   file,
-  commitHash
+  commitHash,
+  fullPath = false
 }: {
   name: string;
   file: GitFileChange;
   commitHash: string;
+  fullPath?: boolean;
 }) {
   const binary = file.additions === null || file.deletions === null;
   const showAddDel = file.type !== "A" && file.type !== "D";
+  const pathParts = splitFilePath(name);
 
   return (
     <button
       type="button"
-      class={`${ENTRY_CLASS} ${FILE_COLOUR[file.type]} ${binary ? "cursor-default" : "cursor-pointer"}`}
-      title={binary ? window.l10n.tooltipBinaryFile : undefined}
+      class={`${ENTRY_CLASS} ${fullPath ? "text-fg" : FILE_COLOUR[file.type]} ${
+        fullPath ? "items-start py-0.5 whitespace-normal" : ""
+      } ${binary ? "cursor-default" : "cursor-pointer"}`}
+      title={binary ? window.l10n.tooltipBinaryFile : name}
       disabled={binary}
       onClick={() => viewDiff(commitHash, file)}
     >
-      <FileIcon />
-      <span class="truncate">{name}</span>
-      {file.type === "R" && (
+      <FileIcon filePath={name} />
+      {fullPath ? (
+        <span class="min-w-0 grow break-all leading-4 whitespace-normal">
+          <span class="text-fg">{pathParts.directory}</span>
+          <span class={FILE_COLOUR[file.type]}>{pathParts.fileName}</span>
+        </span>
+      ) : (
+        <span class="truncate">{name}</span>
+      )}
+      {fullPath && (
+        <span class={`ml-2 shrink-0 font-mono font-semibold ${FILE_COLOUR[file.type]}`}>
+          {file.type}
+        </span>
+      )}
+      {!fullPath && file.type === "R" && (
         <span
           class="ml-2 cursor-help text-fg"
           title={window.l10n.tooltipRenamedTo
@@ -109,6 +138,28 @@ function FileEntry({
       )}
       {showAddDel && <FileAddDel file={file} />}
     </button>
+  );
+}
+
+/** Compact flat list used by the narrow commit-details pane. */
+export function ChangedFileList({
+  files,
+  commitHash
+}: {
+  files: Array<GitFileChange>;
+  commitHash: string;
+}) {
+  return (
+    <ul class="list-none px-1.5 py-1">
+      {files.map((file) => (
+        <li
+          key={`${file.oldFilePath}-${file.newFilePath}`}
+          class="rounded px-1.5 py-0.5 hover:bg-btn-hover"
+        >
+          <FileEntry name={file.newFilePath} file={file} commitHash={commitHash} fullPath />
+        </li>
+      ))}
+    </ul>
   );
 }
 

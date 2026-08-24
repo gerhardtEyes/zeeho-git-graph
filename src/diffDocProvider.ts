@@ -2,9 +2,10 @@ import * as vscode from "vscode";
 
 import { GitInstance } from "./backend/gitClient";
 import { getPathFromStr } from "./backend/utils/path";
+import { EXTENSION_NAMESPACE } from "./extension/constant/const";
 
 export class DiffDocProvider implements vscode.TextDocumentContentProvider {
-  public static scheme = "neo-git-graph";
+  public static scheme = EXTENSION_NAMESPACE;
   private gitClient: GitInstance;
   private onDidChangeEventEmitter = new vscode.EventEmitter<vscode.Uri>();
   private docs = new Map<string, DiffDocument>();

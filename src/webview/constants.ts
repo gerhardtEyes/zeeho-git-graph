@@ -10,9 +10,6 @@ export const UNCOMMITTED_CHANGES = "*";
 export const ROW_HEIGHT = 24;
 export const TABLE_HEADER_HEIGHT = 32;
 
-/** Height of the commit details view. The graph is stretched by it when open. */
-export const COMMIT_DETAILS_HEIGHT = 250;
-
 /**
  * Index in a commit row of each column the user resizes, in the order the
  * widths are stored. The description column is absent: it takes the width the

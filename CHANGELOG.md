@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- Activity Bar side-bar view with a responsive narrow-screen layout
+- Selected-line inline blame with multi-cursor support
+- Optional automatic diff opening for changed files
+- Dedicated lower commit-details pane and compact changed-file list
+- Uncommitted-change visibility in the graph
+
+### Changed
+
+- Rebrand the extension as Zeeho Git Graph under the `zeeho-git-graph` namespace
+- Prepare package metadata for the future `gerhardtEyes/zeeho-git-graph` repository
+- Remove the bundled GitLab private token from avatar requests
+
 ## [0.5.0] - 2026-07-24
 
 ### Added
@@ -65,7 +79,7 @@
 
 Initial release
 
-[Unreleased]: https://github.com/asispts/neo-git-graph/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/commits/main
 [0.5.0]: https://github.com/asispts/neo-git-graph/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/asispts/neo-git-graph/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/asispts/neo-git-graph/compare/v0.2.0...v0.3.0

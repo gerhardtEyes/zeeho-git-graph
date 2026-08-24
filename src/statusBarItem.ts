@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 
 import { Config } from "./config";
-import { EXTENSION_NAME } from "./extension/constant/const";
+import { COMMANDS, EXTENSION_NAME } from "./extension/constant/const";
 import { logger } from "./extension/utils/logger";
 
 export class StatusBarItem {
@@ -13,7 +13,7 @@ export class StatusBarItem {
     this.config = config;
     this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 1);
     this.statusBarItem.name = EXTENSION_NAME;
-    this.statusBarItem.command = "neo-git-graph.view";
+    this.statusBarItem.command = COMMANDS.view;
     context.subscriptions.push(this.statusBarItem);
     logger.log(
       `StatusBarItem created (showStatusBarItem=${config.showStatusBarItem()}, numRepos=0)`
@@ -35,7 +35,7 @@ export class StatusBarItem {
         this.statusBarItem.tooltip = vscode.l10n.t("No Git repository found — watching for one");
       } else {
         this.statusBarItem.text = `$(type-hierarchy) ${EXTENSION_NAME}`;
-        this.statusBarItem.tooltip = vscode.l10n.t("View Git Graph");
+        this.statusBarItem.tooltip = vscode.l10n.t("View Zeeho Git Graph");
       }
       this.statusBarItem.show();
     } else {
