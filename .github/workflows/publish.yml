@@ -92,7 +92,7 @@ jobs:
 
   publish-marketplace:
     name: Publish to VS Marketplace
-    if: ${{ vars.ENABLE_REGISTRY_PUBLISH == 'true' }}
+    if: ${{ vars.ENABLE_VS_MARKETPLACE_PUBLISH == 'true' }}
     needs: package
     runs-on: ubuntu-latest
     environment: release
@@ -113,7 +113,7 @@ jobs:
 
   publish-open-vsx:
     name: Publish to Open VSX
-    if: ${{ vars.ENABLE_REGISTRY_PUBLISH == 'true' }}
+    if: ${{ vars.ENABLE_OPEN_VSX_PUBLISH == 'true' }}
     needs: package
     runs-on: ubuntu-latest
     environment: release
