@@ -5,9 +5,34 @@
 </div>
 
 [![License](https://img.shields.io/github/license/gerhardtEyes/zeeho-git-graph)](LICENSE)
+[![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/Tamzeeho.zeeho-git-graph?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=Tamzeeho.zeeho-git-graph)
 
-> The VS Code Marketplace and Open VSX listings are being prepared. Zeeho Git Graph has not yet
-> been published to either extension registry.
+<p align="center">
+  <img src="./resources/demo.gif" width="100%" alt="Zeeho Git Graph side-bar workflow: compact graph, commit details, changed files, diffs, and selected-line blame" />
+</p>
+
+## Why this fork
+
+The upstream graph is excellent for exploring repository history, but its editor-tab layout competes
+with the code you are actively reading. Moving that same table into a narrow side bar without
+redesigning it would only trade one problem for clipped columns, horizontal scrolling, and crowded
+details.
+
+Zeeho Git Graph has a different product goal: **keep the code as the primary surface while Git
+history remains visible beside it**. It also connects historical commits to the work in progress, so
+you can move from a commit, to its changed files, to a diff, or from selected source lines to their
+last author without leaving the current coding context.
+
+## What changed
+
+| Original limitation                    | Zeeho Git Graph change                                                                                      | Result                                                                      |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| The graph occupies an editor tab       | Replaced the `WebviewPanel` flow with a `WebviewViewProvider` registered in the Activity Bar                | Code and repository history stay visible at the same time                   |
+| A side bar has very little width       | Rebuilt the graph and details as a compact vertical layout with responsive 720, 520, and 420 px breakpoints | Commits, refs, and changed files remain usable in narrow views              |
+| Changed files are hard to scan         | Added neutral paths, status-coloured file names, C# badges, independent scrolling, and direct diff opening  | Added, modified, deleted, and renamed files are immediately distinguishable |
+| Full-file blame creates visual noise   | Shows author and date only for selected lines, including multi-line and multi-cursor selections             | Blame appears on demand without covering the editor                         |
+| Working-tree changes feel disconnected | Added an uncommitted-changes graph row and an optional HEAD-to-working-tree automatic diff                  | Commit history and current work form one continuous workflow                |
+| A derivative needs a clear identity    | Renamed the extension and namespace, added independent release metadata, and preserved upstream MIT notices | The fork can be maintained and released independently and transparently     |
 
 ## Project origin
 
@@ -33,15 +58,16 @@ Zeeho Git Graph is not affiliated with or endorsed by either upstream project.
 - **Multi-repository support:** Discover and switch between repositories in one workspace.
 - **Localization:** English, Simplified Chinese, and Traditional Chinese.
 
-## Local installation
+## Installation
 
-Until the first public release, install a locally built VSIX:
+Install [Zeeho Git Graph from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Tamzeeho.zeeho-git-graph),
+or build and install a VSIX locally:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm run package
-pnpm dlx @vscode/vsce package --no-dependencies
-code --install-extension zeeho-git-graph-0.6.2.vsix --force
+pnpm dlx @vscode/vsce package --no-dependencies --out zeeho-git-graph-dev.vsix
+code --install-extension zeeho-git-graph-dev.vsix --force
 ```
 
 ## Configuration

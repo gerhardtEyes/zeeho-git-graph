@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-08-25
+
+### Added
+
+- Add a new animated preview recorded from the Zeeho Git Graph side-bar workflow
+- Document in English why this fork exists and what differs from the upstream editor-tab experience
+
+### Changed
+
+- Replace the outdated pre-release installation notice with the public VS Marketplace link
+
 ## [0.6.2] - 2026-08-24
 
 ### Changed
@@ -93,7 +104,8 @@
 
 Initial release
 
-[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.2...HEAD
+[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.3...HEAD
+[0.6.3]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.1...v0.6.2
 [0.6.1]: https://github.com/gerhardtEyes/zeeho-git-graph/releases/tag/v0.6.1
 [0.6.0]: https://github.com/gerhardtEyes/zeeho-git-graph/releases/tag/v0.6.0
