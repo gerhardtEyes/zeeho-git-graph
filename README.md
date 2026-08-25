@@ -31,7 +31,7 @@ last author without leaving the current coding context.
 | A side bar has very little width       | Rebuilt the graph and details as a compact vertical layout with responsive 720, 520, and 420 px breakpoints | Commits, refs, and changed files remain usable in narrow views              |
 | Changed files are hard to scan         | Added neutral paths, status-coloured file names, C# badges, independent scrolling, and direct diff opening  | Added, modified, deleted, and renamed files are immediately distinguishable |
 | Full-file blame creates visual noise   | Shows author and date only for selected lines, including multi-line and multi-cursor selections             | Blame appears on demand without covering the editor                         |
-| Working-tree changes feel disconnected | Added an uncommitted-changes graph row and an optional HEAD-to-working-tree automatic diff                  | Commit history and current work form one continuous workflow                |
+| Working-tree changes feel disconnected | Added an expandable uncommitted-changes row, direct file diffs, and an optional automatic dirty-file diff   | Commit history and current work form one continuous workflow                |
 | A derivative needs a clear identity    | Renamed the extension and namespace, added independent release metadata, and preserved upstream MIT notices | The fork can be maintained and released independently and transparently     |
 
 ## Project origin
@@ -52,7 +52,7 @@ Zeeho Git Graph is not affiliated with or endorsed by either upstream project.
 - **Commit details pane:** Select a commit to inspect its metadata and changed files below the graph.
 - **Changed-file presentation:** Status colours, full paths, C# badges, and direct diff opening.
 - **Selected-line blame:** Show the last author and date only for selected lines, including multiple cursors.
-- **Uncommitted changes:** Display working-tree changes in the graph.
+- **Uncommitted changes:** Select the working-tree node to inspect changed files and open HEAD-to-working-tree diffs.
 - **Optional dirty-file diff:** Automatically open a HEAD-to-working-tree comparison for changed files.
 - **Branch, tag, and commit actions:** Common Git operations are available from the graph.
 - **Multi-repository support:** Discover and switch between repositories in one workspace.

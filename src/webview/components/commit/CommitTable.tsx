@@ -5,7 +5,7 @@ import { CommitGraph } from "@/webview/components/commit/CommitGraph";
 import { CommitRow } from "@/webview/components/commit/CommitRow";
 import type { ColumnResize } from "@/webview/components/commit/useColumnResize";
 import { useColumnResize } from "@/webview/components/commit/useColumnResize";
-import { TABLE_HEADER_HEIGHT, UNCOMMITTED_CHANGES } from "@/webview/constants";
+import { TABLE_HEADER_HEIGHT } from "@/webview/constants";
 import { GRAPH_PADDING } from "@/webview/graph/constants";
 import { computeGraphLayout } from "@/webview/graph/layout";
 import { branchColour } from "@/webview/graph/palette";
@@ -146,11 +146,7 @@ export function CommitTable({ commits, head, headBranch }: CommitTableProps) {
               messages={messages}
               colour={branchColour(layout.vertices[index].colour)}
               expanded={index === expandedRow}
-              onSelect={
-                commit.hash === UNCOMMITTED_CHANGES
-                  ? undefined
-                  : () => toggleCommitDetails(commit.hash)
-              }
+              onSelect={() => toggleCommitDetails(commit.hash)}
             />
           ))}
         </tbody>

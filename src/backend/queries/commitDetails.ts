@@ -68,11 +68,115 @@ async function fetchNumStat(git: SimpleGit, commitHash: string): Promise<string[
   return stdout.split(eolRegex);
 }
 
+/** Parse a NUL-delimited `git diff --name-status` result without mangling unusual paths. */
+function parseWorkingTreeNameStatus(stdout: string): GitCommitDetails["fileChanges"] {
+  const fields = stdout.split("\0");
+  const fileChanges: GitCommitDetails["fileChanges"] = [];
+
+  for (let i = 0; i < fields.length;) {
+    const statusField = fields[i++];
+    if (statusField === "") {
+      continue;
+    }
+
+    const separator = statusField.indexOf("\t");
+    const status = separator === -1 ? statusField : statusField.substring(0, separator);
+    const firstPath = separator === -1 ? fields[i++] : statusField.substring(separator + 1);
+    if (!firstPath) {
+      break;
+    }
+
+    const type = status[0] as GitFileChangeType;
+    const oldFilePath = toPath(firstPath);
+    const newFilePath = type === "R" ? toPath(fields[i++] ?? firstPath) : oldFilePath;
+    fileChanges.push({ oldFilePath, newFilePath, type, additions: null, deletions: null });
+  }
+
+  return fileChanges;
+}
+
+/** Apply a NUL-delimited `git diff --numstat` result to the matching file changes. */
+function applyWorkingTreeNumStat(stdout: string, fileChanges: GitCommitDetails["fileChanges"]) {
+  const lookup = new Map(fileChanges.map((file) => [file.newFilePath, file]));
+  const fields = stdout.split("\0");
+
+  for (let i = 0; i < fields.length;) {
+    const stat = fields[i++];
+    if (stat === "") {
+      continue;
+    }
+
+    const columns = stat.split("\t");
+    if (columns.length !== 3) {
+      continue;
+    }
+
+    let newFilePath = columns[2];
+    if (newFilePath === "") {
+      i++; // The old path of a rename precedes its new path.
+      newFilePath = fields[i++] ?? "";
+    }
+
+    const file = lookup.get(toPath(newFilePath));
+    if (file === undefined) {
+      continue;
+    }
+
+    file.additions = columns[0] === "-" ? null : parseInt(columns[0]);
+    file.deletions = columns[1] === "-" ? null : parseInt(columns[1]);
+  }
+}
+
+async function fetchWorkingTreeDetails(git: SimpleGit): Promise<GitCommitDetails> {
+  const [head, nameStatus, numStat, untracked] = await Promise.all([
+    git.raw(["rev-parse", "HEAD"]),
+    git.raw(["diff", "--name-status", "-z", "--find-renames", "--diff-filter=AMDR", "HEAD", "--"]),
+    git.raw(["diff", "--numstat", "-z", "--find-renames", "--diff-filter=AMDR", "HEAD", "--"]),
+    git.raw(["ls-files", "--others", "--exclude-standard", "-z"])
+  ]);
+
+  const fileChanges = parseWorkingTreeNameStatus(nameStatus);
+  applyWorkingTreeNumStat(numStat, fileChanges);
+
+  const trackedPaths = new Set(fileChanges.map((file) => file.newFilePath));
+  for (const path of untracked.split("\0")) {
+    const filePath = toPath(path);
+    if (filePath === "" || trackedPaths.has(filePath)) {
+      continue;
+    }
+    fileChanges.push({
+      oldFilePath: filePath,
+      newFilePath: filePath,
+      type: "A",
+      // Added/deleted counts are hidden for added files. Non-null values keep
+      // text files clickable so their empty-to-working-tree diff can open.
+      additions: 0,
+      deletions: 0
+    });
+  }
+
+  fileChanges.sort((a, b) => a.newFilePath.localeCompare(b.newFilePath));
+  return {
+    hash: "*",
+    parents: [head.trim()],
+    author: "",
+    email: "",
+    date: Math.round(Date.now() / 1000),
+    committer: "",
+    body: "",
+    fileChanges
+  };
+}
+
 export async function commitDetails(
   git: SimpleGit,
   input: CommitDetailsInput
 ): Promise<QueryResult<"commitDetails">> {
   try {
+    if (input.commitHash === "*") {
+      return { commitDetails: await fetchWorkingTreeDetails(git) };
+    }
+
     const [details, nameStatusLines, numStatLines] = await Promise.all([
       fetchCommitInfo(git, input.commitHash, input.dateType),
       fetchNameStatus(git, input.commitHash),

@@ -33,6 +33,27 @@ function viewDiff(
   newFilePath: string,
   type: GitFileChangeType
 ): Promise<boolean> {
+  if (commitHash === "*") {
+    const pathComponents = newFilePath.split("/");
+    const title = vscode.l10n.t(
+      "{0} (HEAD ↔ Working Tree)",
+      pathComponents[pathComponents.length - 1]
+    );
+    const emptyDocument = encodeDiffDocUri(repo, newFilePath, "");
+    const left = type === "A" ? emptyDocument : encodeDiffDocUri(repo, oldFilePath, "HEAD");
+    const right =
+      type === "D"
+        ? emptyDocument
+        : vscode.Uri.joinPath(vscode.Uri.file(repo), ...newFilePath.split("/"));
+
+    return Promise.resolve(
+      vscode.commands.executeCommand("vscode.diff", left, right, title, { preview: true })
+    ).then(
+      () => true,
+      () => false
+    );
+  }
+
   const abbrevHash = abbrevCommit(commitHash);
   const pathComponents = newFilePath.split("/");
   const title =
@@ -44,18 +65,18 @@ function viewDiff(
         ? vscode.l10n.t("Deleted in {0}", abbrevHash)
         : abbrevCommit(commitHash) + "^ ↔ " + abbrevCommit(commitHash)) +
     ")";
-  return new Promise<boolean>((resolve) => {
-    vscode.commands
-      .executeCommand(
-        "vscode.diff",
-        encodeDiffDocUri(repo, oldFilePath, commitHash + "^"),
-        encodeDiffDocUri(repo, newFilePath, commitHash),
-        title,
-        { preview: true }
-      )
-      .then(() => resolve(true))
-      .then(() => resolve(false));
-  });
+  return Promise.resolve(
+    vscode.commands.executeCommand(
+      "vscode.diff",
+      encodeDiffDocUri(repo, oldFilePath, commitHash + "^"),
+      encodeDiffDocUri(repo, newFilePath, commitHash),
+      title,
+      { preview: true }
+    )
+  ).then(
+    () => true,
+    () => false
+  );
 }
 
 export function registerMessageHandlers(

@@ -1,6 +1,6 @@
 import { computed, effect } from "@preact/signals";
 
-import { SHOW_ALL_BRANCHES } from "@/webview/constants";
+import { SHOW_ALL_BRANCHES, UNCOMMITTED_CHANGES } from "@/webview/constants";
 import {
   actionRequest,
   clipboardRequest,
@@ -51,7 +51,12 @@ export const commitDetailsQuery = computed(() => {
     return null;
   }
 
-  return { repo, commitHash };
+  return {
+    repo,
+    commitHash,
+    // Keep an open working-tree list current as the repository watcher fires.
+    token: commitHash === UNCOMMITTED_CHANGES ? refreshToken.value : 0
+  };
 });
 
 export function startSync() {

@@ -3,11 +3,22 @@ import { abbrevCommit } from "@/backend/utils/string";
 import { ChangedFileList } from "@/webview/components/commit/FileTree";
 import { Icon } from "@/webview/components/ui/Icons";
 import { Loading } from "@/webview/components/ui/Loading";
+import { UNCOMMITTED_CHANGES } from "@/webview/constants";
 import { closeCommitDetails } from "@/webview/lib/actions";
 import { getCommitDate } from "@/webview/utils/date";
 import { format } from "@/webview/utils/format";
 
 function Summary({ details }: { details: GitCommitDetails }) {
+  if (details.hash === UNCOMMITTED_CHANGES) {
+    return (
+      <div class="git-graph-details-summary min-w-0 grow select-text">
+        <div class="truncate font-semibold">
+          {format(window.l10n.uncommittedChanges, details.fileChanges.length)}
+        </div>
+      </div>
+    );
+  }
+
   const subject = details.body.split(/\r?\n/, 1)[0] || abbrevCommit(details.hash);
   const date = getCommitDate(details.date);
 

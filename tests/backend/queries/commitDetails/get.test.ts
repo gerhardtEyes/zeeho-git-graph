@@ -99,4 +99,62 @@ describe("commitDetails", () => {
     const result = await commitDetails(simpleGit(repo), { commitHash, dateType: "Author Date" });
     expect(result.commitDetails!.body).toContain("init");
   });
+
+  it("returns tracked, renamed, deleted and untracked working-tree changes", async () => {
+    const dirtyRepo = makeRepo();
+    try {
+      fs.writeFileSync(path.join(dirtyRepo, "deleted.txt"), "delete me\n");
+      fs.writeFileSync(path.join(dirtyRepo, "old-name.txt"), "rename me\n");
+      git(["add", "."], dirtyRepo);
+      git(["commit", "-m", "tracked files"], dirtyRepo);
+
+      fs.writeFileSync(path.join(dirtyRepo, "f"), "x\nmodified\n");
+      fs.rmSync(path.join(dirtyRepo, "deleted.txt"));
+      git(["mv", "old-name.txt", "new-name.txt"], dirtyRepo);
+      fs.writeFileSync(path.join(dirtyRepo, "untracked.cs"), "class NewFile {}\n");
+
+      const result = await commitDetails(simpleGit(dirtyRepo), {
+        commitHash: "*",
+        dateType: "Author Date"
+      });
+
+      expect(result.commitDetails).toMatchObject({
+        hash: "*",
+        parents: [expect.any(String)],
+        author: "",
+        email: "",
+        committer: "",
+        body: ""
+      });
+      const changes = new Map(
+        result.commitDetails!.fileChanges.map((file) => [file.newFilePath, file])
+      );
+      expect(changes.get("f")).toMatchObject({ type: "M" });
+      expect(changes.get("f")!.additions).toEqual(expect.any(Number));
+      expect(changes.get("f")!.deletions).toEqual(expect.any(Number));
+      expect(changes.get("deleted.txt")).toMatchObject({ type: "D" });
+      expect(changes.get("new-name.txt")).toMatchObject({
+        oldFilePath: "old-name.txt",
+        type: "R"
+      });
+      expect(changes.get("untracked.cs")).toEqual({
+        oldFilePath: "untracked.cs",
+        newFilePath: "untracked.cs",
+        type: "A",
+        additions: 0,
+        deletions: 0
+      });
+    } finally {
+      fs.rmSync(dirtyRepo, { recursive: true, force: true });
+    }
+  });
+
+  it("returns an empty working-tree list for a clean repository", async () => {
+    const result = await commitDetails(simpleGit(repo), {
+      commitHash: "*",
+      dateType: "Commit Date"
+    });
+    expect(result.commitDetails).not.toBeNull();
+    expect(result.commitDetails!.fileChanges).toEqual([]);
+  });
 });
