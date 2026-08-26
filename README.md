@@ -8,7 +8,7 @@
 [![Visual Studio Marketplace](https://img.shields.io/visual-studio-marketplace/v/Tamzeeho.zeeho-git-graph?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=Tamzeeho.zeeho-git-graph)
 
 <p align="center">
-  <img src="./resources/demo.gif" width="100%" alt="Zeeho Git Graph side-bar workflow: compact graph, commit details, changed files, diffs, and selected-line blame" />
+  <img src="./resources/demo.gif" width="100%" alt="Zeeho Git Graph side-bar workflow: staged and unstaged changes, diffs, commit input, and Git operations beside the code" />
 </p>
 
 ## Why this fork

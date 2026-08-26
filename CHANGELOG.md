@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.5] - 2026-08-26
+
 ### Added
 
 - Double-click a changed file to close its active comparison and open the real working-tree file
@@ -14,6 +16,7 @@
 
 - Keep single-click diff opening distinct from double-click file opening, including keyboard access and binary-file opening
 - Compare staged files as HEAD-to-index and unstaged files as index-to-working-tree
+- Replace the Marketplace demo with the staged working-copy and Git-operations workflow
 
 ## [0.6.4] - 2026-08-25
 
@@ -128,7 +131,8 @@
 
 Initial release
 
-[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.2...v0.6.3
 [0.6.2]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.1...v0.6.2
