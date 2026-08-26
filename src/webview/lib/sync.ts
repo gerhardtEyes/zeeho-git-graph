@@ -160,7 +160,8 @@ export function startSync() {
       commitHash: request.commitHash,
       oldFilePath: request.file.oldFilePath,
       newFilePath: request.file.newFilePath,
-      type: request.file.type
+      type: request.file.type,
+      scope: request.scope
     });
   });
 

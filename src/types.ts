@@ -1,6 +1,7 @@
 import {
   ActionRequest,
   ActionResponse,
+  GitDiffScope,
   GitFileChangeType,
   QueryRequest,
   QueryResponse
@@ -94,6 +95,7 @@ export type RequestViewDiff = {
   oldFilePath: string;
   newFilePath: string;
   type: GitFileChangeType;
+  scope: GitDiffScope;
 };
 export type ResponseViewDiff = {
   command: "viewDiff";

@@ -1,6 +1,7 @@
 import type { GitCommitDetails } from "@/backend/types";
 import { abbrevCommit } from "@/backend/utils/string";
 import { ChangedFileList } from "@/webview/components/commit/FileTree";
+import { WorkingTreeChanges } from "@/webview/components/commit/WorkingTreeChanges";
 import { Icon } from "@/webview/components/ui/Icons";
 import { Loading } from "@/webview/components/ui/Loading";
 import { UNCOMMITTED_CHANGES } from "@/webview/constants";
@@ -48,12 +49,21 @@ export function CommitDetails({ details }: { details: GitCommitDetails | null })
   const fileCount = details?.fileChanges.length ?? 0;
 
   return (
-    <section class="git-graph-details-pane relative flex shrink-0 flex-col overflow-hidden border-t border-line bg-editor text-ui leading-4.5 whitespace-normal">
+    <section
+      class={`git-graph-details-pane relative flex shrink-0 flex-col overflow-hidden border-t border-line bg-editor text-ui leading-4.5 whitespace-normal ${
+        details?.hash === UNCOMMITTED_CHANGES ? "git-graph-working-tree-pane" : ""
+      }`}
+    >
       <div class="flex min-h-12 shrink-0 items-center gap-2 border-b border-line-soft bg-btn px-2 py-1.5 pr-9">
         {details === null ? <span>{window.l10n.loading}</span> : <Summary details={details} />}
       </div>
       {details === null ? (
         <Loading />
+      ) : details.hash === UNCOMMITTED_CHANGES ? (
+        <WorkingTreeChanges
+          stagedFiles={details.stagedFileChanges ?? []}
+          unstagedFiles={details.unstagedFileChanges ?? details.fileChanges}
+        />
       ) : (
         <>
           <div class="shrink-0 px-2 py-1 text-xs font-semibold text-muted uppercase">

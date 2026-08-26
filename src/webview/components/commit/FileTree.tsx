@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import type { GitFileChange } from "@/backend/types";
+import type { GitDiffScope, GitFileChange } from "@/backend/types";
 import { Icon } from "@/webview/components/ui/Icons";
 import { openFile, viewDiff } from "@/webview/lib/actions";
 import { isCSharpFile, splitFilePath } from "@/webview/utils/filePresentation";
@@ -14,7 +14,8 @@ const FILE_COLOUR: Record<GitFileChange["type"], string> = {
   A: "text-file-added",
   D: "text-file-deleted",
   M: "text-file-modified",
-  R: "text-file-renamed"
+  R: "text-file-renamed",
+  U: "text-file-deleted"
 };
 
 function FolderIcon({ open }: { open: boolean }) {
@@ -88,18 +89,30 @@ function FileAddDel({ file }: { file: GitFileChange }) {
   );
 }
 
-function FileEntry({
+export function FileEntry({
   name,
   file,
   commitHash,
-  fullPath = false
+  fullPath = false,
+  scope = commitHash === "*" ? "working" : "commit",
+  selected = false,
+  draggable = false,
+  onSelect,
+  onContextMenu,
+  onDragStart
 }: {
   name: string;
   file: GitFileChange;
   commitHash: string;
   fullPath?: boolean;
+  scope?: GitDiffScope;
+  selected?: boolean;
+  draggable?: boolean;
+  onSelect?: (event: MouseEvent) => void;
+  onContextMenu?: (event: MouseEvent) => void;
+  onDragStart?: (event: DragEvent) => void;
 }) {
-  const binary = file.additions === null || file.deletions === null;
+  const binary = file.type !== "U" && (file.additions === null || file.deletions === null);
   const showAddDel = file.type !== "A" && file.type !== "D";
   const pathParts = splitFilePath(name);
   const pendingClick = useRef<number | null>(null);
@@ -118,22 +131,27 @@ function FileEntry({
       type="button"
       class={`${ENTRY_CLASS} ${fullPath ? "text-fg" : FILE_COLOUR[file.type]} ${
         fullPath ? "items-start py-0.5 whitespace-normal" : ""
-      } cursor-pointer`}
+      } cursor-pointer rounded-sm ${selected ? "bg-row-selected" : ""}`}
+      aria-selected={selected}
+      draggable={draggable}
       title={`${name}\n${
         binary
           ? `${window.l10n.tooltipBinaryFile}\n${window.l10n.tooltipOpenFile}`
           : window.l10n.tooltipFileInteraction
       }`}
       onClick={(event) => {
+        onSelect?.(event);
         if (binary || event.detail > 1) {
           return;
         }
         cancelPendingClick();
         pendingClick.current = window.setTimeout(() => {
           pendingClick.current = null;
-          viewDiff(commitHash, file);
+          viewDiff(commitHash, file, scope);
         }, SINGLE_CLICK_DELAY);
       }}
+      onContextMenu={onContextMenu}
+      onDragStart={onDragStart}
       onDblClick={(event) => {
         event.preventDefault();
         cancelPendingClick();

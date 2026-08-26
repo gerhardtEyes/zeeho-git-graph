@@ -4,6 +4,9 @@ import { GitInstance } from "./backend/gitClient";
 import { getPathFromStr } from "./backend/utils/path";
 import { EXTENSION_NAMESPACE } from "./extension/constant/const";
 
+export const EMPTY_DIFF_REVISION = "__zeeho_empty__";
+export const INDEX_DIFF_REVISION = "__zeeho_index__";
+
 export class DiffDocProvider implements vscode.TextDocumentContentProvider {
   public static scheme = EXTENSION_NAMESPACE;
   private gitClient: GitInstance;
@@ -35,9 +38,17 @@ export class DiffDocProvider implements vscode.TextDocumentContentProvider {
     }
 
     let request = decodeDiffDocUri(uri);
+    if (request.commit === EMPTY_DIFF_REVISION) {
+      return "";
+    }
+
+    const gitObject =
+      request.commit === INDEX_DIFF_REVISION
+        ? `:${request.filePath}`
+        : `${request.commit}:${request.filePath}`;
     return this.gitClient()
       .cwd(request.repo)
-      .show([`${request.commit}:${request.filePath}`])
+      .show([gitObject])
       .catch(() => "")
       .then((data) => {
         let doc = new DiffDocument(data);
@@ -59,7 +70,12 @@ class DiffDocument {
   }
 }
 
-export function encodeDiffDocUri(repo: string, path: string, commit: string): vscode.Uri {
+export function encodeDiffDocUri(
+  repo: string,
+  path: string,
+  commit: string,
+  cacheKey: string | null = null
+): vscode.Uri {
   return vscode.Uri.parse(
     DiffDocProvider.scheme +
       ":" +
@@ -67,7 +83,8 @@ export function encodeDiffDocUri(repo: string, path: string, commit: string): vs
       "?commit=" +
       encodeURIComponent(commit) +
       "&repo=" +
-      encodeURIComponent(repo)
+      encodeURIComponent(repo) +
+      (cacheKey === null ? "" : "&cacheKey=" + encodeURIComponent(cacheKey))
   );
 }
 

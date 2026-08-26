@@ -127,19 +127,57 @@ function applyWorkingTreeNumStat(stdout: string, fileChanges: GitCommitDetails["
   }
 }
 
-async function fetchWorkingTreeDetails(git: SimpleGit): Promise<GitCommitDetails> {
-  const [head, nameStatus, numStat, untracked] = await Promise.all([
-    git.raw(["rev-parse", "HEAD"]),
-    git.raw(["diff", "--name-status", "-z", "--find-renames", "--diff-filter=AMDR", "HEAD", "--"]),
-    git.raw(["diff", "--numstat", "-z", "--find-renames", "--diff-filter=AMDR", "HEAD", "--"]),
-    git.raw(["ls-files", "--others", "--exclude-standard", "-z"])
-  ]);
+/** Git may report an unmerged path once as U and again as its working-tree M entry. */
+function coalesceWorkingTreeChanges(fileChanges: GitCommitDetails["fileChanges"]) {
+  const byPath = new Map<string, GitCommitDetails["fileChanges"][number]>();
+  for (const file of fileChanges) {
+    const existing = byPath.get(file.newFilePath);
+    if (existing === undefined) {
+      byPath.set(file.newFilePath, file);
+      continue;
+    }
 
+    if (file.type === "U") {
+      file.additions ??= existing.additions;
+      file.deletions ??= existing.deletions;
+      byPath.set(file.newFilePath, file);
+    } else if (existing.type === "U") {
+      existing.additions ??= file.additions;
+      existing.deletions ??= file.deletions;
+    }
+  }
+  return [...byPath.values()];
+}
+
+async function fetchWorkingTreeDiff(git: SimpleGit, revisions: string[]) {
+  const [nameStatus, numStat] = await Promise.all([
+    git.raw([
+      "diff",
+      "--name-status",
+      "-z",
+      "--find-renames",
+      "--diff-filter=AMDRU",
+      ...revisions,
+      "--"
+    ]),
+    git.raw([
+      "diff",
+      "--numstat",
+      "-z",
+      "--find-renames",
+      "--diff-filter=AMDRU",
+      ...revisions,
+      "--"
+    ])
+  ]);
   const fileChanges = parseWorkingTreeNameStatus(nameStatus);
   applyWorkingTreeNumStat(numStat, fileChanges);
+  return coalesceWorkingTreeChanges(fileChanges);
+}
 
+function addUntrackedFiles(fileChanges: GitCommitDetails["fileChanges"], stdout: string) {
   const trackedPaths = new Set(fileChanges.map((file) => file.newFilePath));
-  for (const path of untracked.split("\0")) {
+  for (const path of stdout.split("\0")) {
     const filePath = toPath(path);
     if (filePath === "" || trackedPaths.has(filePath)) {
       continue;
@@ -154,8 +192,26 @@ async function fetchWorkingTreeDetails(git: SimpleGit): Promise<GitCommitDetails
       deletions: 0
     });
   }
+}
 
+function sortFileChanges(fileChanges: GitCommitDetails["fileChanges"]) {
   fileChanges.sort((a, b) => a.newFilePath.localeCompare(b.newFilePath));
+}
+
+async function fetchWorkingTreeDetails(git: SimpleGit): Promise<GitCommitDetails> {
+  const [head, fileChanges, stagedFileChanges, unstagedFileChanges, untracked] = await Promise.all([
+    git.raw(["rev-parse", "HEAD"]),
+    fetchWorkingTreeDiff(git, ["HEAD"]),
+    fetchWorkingTreeDiff(git, ["--cached", "HEAD"]),
+    fetchWorkingTreeDiff(git, []),
+    git.raw(["ls-files", "--others", "--exclude-standard", "-z"])
+  ]);
+
+  addUntrackedFiles(fileChanges, untracked);
+  addUntrackedFiles(unstagedFileChanges, untracked);
+  sortFileChanges(fileChanges);
+  sortFileChanges(stagedFileChanges);
+  sortFileChanges(unstagedFileChanges);
   return {
     hash: "*",
     parents: [head.trim()],
@@ -164,7 +220,9 @@ async function fetchWorkingTreeDetails(git: SimpleGit): Promise<GitCommitDetails
     date: Math.round(Date.now() / 1000),
     committer: "",
     body: "",
-    fileChanges
+    fileChanges,
+    stagedFileChanges,
+    unstagedFileChanges
   };
 }
 

@@ -26,6 +26,8 @@ export function getWebviewLocalizedStrings() {
     author: vscode.l10n.t("Author"),
     commit: vscode.l10n.t("Commit"),
     changedFiles: vscode.l10n.t("Changes ({0})"),
+    stagedChanges: vscode.l10n.t("Staged Changes ({0})"),
+    unstagedChanges: vscode.l10n.t("Unstaged Changes ({0})"),
     noCommits: vscode.l10n.t("No commits yet"),
     createFirstCommit: vscode.l10n.t("Create the first commit to start the graph."),
 
@@ -51,6 +53,12 @@ export function getWebviewLocalizedStrings() {
     unableToRenameBranch: vscode.l10n.t("Unable to Rename Branch"),
     unableToReset: vscode.l10n.t("Unable to Reset to Commit"),
     unableToRevert: vscode.l10n.t("Unable to Revert Commit"),
+    unableToStageChanges: vscode.l10n.t("Unable to Stage Changes"),
+    unableToUnstageChanges: vscode.l10n.t("Unable to Unstage Changes"),
+    unableToCommitChanges: vscode.l10n.t("Unable to Commit Changes"),
+    unableToPushCurrentBranch: vscode.l10n.t("Unable to Push Current Branch"),
+    unableToPullCurrentBranch: vscode.l10n.t("Unable to Pull Current Branch"),
+    unableToRebaseBranch: vscode.l10n.t("Unable to Rebase Current Branch"),
     invalidCharacters: vscode.l10n.t("Unable to {0}, one or more invalid characters entered."),
 
     // Actions
@@ -69,6 +77,15 @@ export function getWebviewLocalizedStrings() {
     checkoutBranch: vscode.l10n.t("Checkout Branch"),
     renameBranch: vscode.l10n.t("Rename Branch"),
     deleteBranch: vscode.l10n.t("Delete Branch"),
+    stageAll: vscode.l10n.t("Stage All"),
+    unstageAll: vscode.l10n.t("Unstage All"),
+    stageSelected: vscode.l10n.t("Stage Selected ({0})"),
+    unstageSelected: vscode.l10n.t("Unstage Selected ({0})"),
+    commitChanges: vscode.l10n.t("Commit"),
+    pull: vscode.l10n.t("Pull"),
+    push: vscode.l10n.t("Push"),
+    mergeShort: vscode.l10n.t("Merge"),
+    rebase: vscode.l10n.t("Rebase"),
 
     typeCommitHash: vscode.l10n.t("Commit Hash"),
     typeTagName: vscode.l10n.t("Tag Name"),
@@ -106,6 +123,22 @@ export function getWebviewLocalizedStrings() {
     dialogRenameBranchTitle: vscode.l10n.t("Enter the new name for the branch {0}:"),
     dialogRenameBranchSubmit: vscode.l10n.t("Rename Branch"),
     dialogPushTagConfirm: vscode.l10n.t("Are you sure you want to push the tag {0}?"),
+    dialogPushCurrentBranchConfirm: vscode.l10n.t(
+      "Push the current branch to its configured upstream?"
+    ),
+    dialogPullCurrentBranchConfirm: vscode.l10n.t(
+      "Pull the configured upstream into the current branch?"
+    ),
+    dialogMergeSelectedBranchConfirm: vscode.l10n.t(
+      "Select a branch to merge into the current branch."
+    ),
+    dialogRebaseSelectedBranchConfirm: vscode.l10n.t(
+      "Select the branch to rebase the current branch onto. Commit or stash local changes first."
+    ),
+    pullStrategy: vscode.l10n.t("Strategy"),
+    pullFastForwardOnly: vscode.l10n.t("Fast-forward only (safest)"),
+    pullMerge: vscode.l10n.t("Merge"),
+    pullRebase: vscode.l10n.t("Rebase"),
     dialogYes: vscode.l10n.t("Yes"),
     dialogYesCherryPick: vscode.l10n.t("Yes, cherry pick commit"),
     dialogYesRevert: vscode.l10n.t("Yes, revert commit"),
@@ -116,6 +149,11 @@ export function getWebviewLocalizedStrings() {
 
     // Status
     pushingTag: vscode.l10n.t("Pushing Tag"),
+    pushingCurrentBranch: vscode.l10n.t("Pushing Current Branch"),
+    pullingCurrentBranch: vscode.l10n.t("Pulling Current Branch"),
+    mergingBranch: vscode.l10n.t("Merging Branch"),
+    rebasingBranch: vscode.l10n.t("Rebasing Current Branch"),
+    committingChanges: vscode.l10n.t("Committing Changes"),
 
     // Relative commit dates are formatted by Intl.RelativeTimeFormat in the
     // webview (see utils/date.ts), so no time units are declared here.
@@ -128,6 +166,10 @@ export function getWebviewLocalizedStrings() {
     detailCommitter: vscode.l10n.t("Committer: {0}"),
 
     uncommittedChanges: vscode.l10n.t("Uncommitted Changes ({0})"),
+    dropFilesToStage: vscode.l10n.t("Drop files here to stage them."),
+    noUnstagedChanges: vscode.l10n.t("No unstaged changes."),
+    commitMessagePlaceholder: vscode.l10n.t("Commit message"),
+    commitShortcut: vscode.l10n.t("Commit staged changes (Ctrl/Cmd+Enter)"),
 
     // File tooltips
     tooltipBinaryFile: vscode.l10n.t("This is a binary file, unable to view diff."),

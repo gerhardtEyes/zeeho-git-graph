@@ -1,4 +1,4 @@
-import type { GitResetMode } from "./git.types";
+import type { GitPullStrategy, GitResetMode } from "./git.types";
 
 export type GitCommandStatus = string | null;
 
@@ -12,10 +12,18 @@ type ActionPayloads = {
   deleteTag: { tagName: string };
   mergeBranch: { branchName: string; createNewCommit: boolean };
   mergeCommit: { commitHash: string; createNewCommit: boolean };
+  commitChanges: { message: string };
+  pullCurrentBranch: { strategy: GitPullStrategy };
+  pushCurrentBranch: Record<never, never>;
   pushTag: { tagName: string };
+  rebaseBranch: { branchName: string };
   renameBranch: { oldName: string; newName: string };
   resetToCommit: { commitHash: string; resetMode: GitResetMode };
   revertCommit: { commitHash: string; parentIndex: number };
+  stageAll: Record<never, never>;
+  stageFiles: { paths: string[] };
+  unstageAll: Record<never, never>;
+  unstageFiles: { paths: string[] };
 };
 
 export type ActionRequest = {

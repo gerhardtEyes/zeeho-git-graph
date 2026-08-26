@@ -1,6 +1,6 @@
 import type { ComponentChildren } from "preact";
 
-import type { ActionRequest, GitFileChange } from "@/backend/types";
+import type { ActionRequest, GitDiffScope, GitFileChange } from "@/backend/types";
 import type { GitRepoState } from "@/types";
 
 export type CommitBranchType = "*" | (string & {});
@@ -94,6 +94,7 @@ export type DiffRequest = {
   repo: string;
   commitHash: string;
   file: GitFileChange;
+  scope: GitDiffScope;
   /** Bumped per request, so that opening one file twice is sent twice. */
   token: number;
 };

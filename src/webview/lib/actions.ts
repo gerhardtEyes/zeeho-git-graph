@@ -1,7 +1,7 @@
 import { batch } from "@preact/signals";
 import type { ComponentChildren } from "preact";
 
-import type { ActionRequest, GitFileChange } from "@/backend/types";
+import type { ActionRequest, GitDiffScope, GitFileChange } from "@/backend/types";
 import {
   actionRequest,
   branchList,
@@ -224,7 +224,11 @@ export function copyToClipboard(type: string, data: string) {
 }
 
 /** Ask the editor to open the diff of a file of a commit. */
-export function viewDiff(commitHash: string, file: GitFileChange) {
+export function viewDiff(
+  commitHash: string,
+  file: GitFileChange,
+  scope: GitDiffScope = commitHash === "*" ? "working" : "commit"
+) {
   const repo = selectedRepo.value;
   if (repo === undefined) {
     return;
@@ -234,6 +238,7 @@ export function viewDiff(commitHash: string, file: GitFileChange) {
     repo,
     commitHash,
     file,
+    scope,
     token: (diffRequest.value?.token ?? 0) + 1
   };
 }

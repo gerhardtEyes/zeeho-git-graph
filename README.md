@@ -25,14 +25,14 @@ last author without leaving the current coding context.
 
 ## What changed
 
-| Original limitation                    | Zeeho Git Graph change                                                                                      | Result                                                                      |
-| -------------------------------------- | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
-| The graph occupies an editor tab       | Replaced the `WebviewPanel` flow with a `WebviewViewProvider` registered in the Activity Bar                | Code and repository history stay visible at the same time                   |
-| A side bar has very little width       | Rebuilt the graph and details as a compact vertical layout with responsive 720, 520, and 420 px breakpoints | Commits, refs, and changed files remain usable in narrow views              |
-| Changed files are hard to scan         | Added neutral paths, status-coloured file names, C# badges, independent scrolling, and direct diff opening  | Added, modified, deleted, and renamed files are immediately distinguishable |
-| Full-file blame creates visual noise   | Shows author and date only for selected lines, including multi-line and multi-cursor selections             | Blame appears on demand without covering the editor                         |
-| Working-tree changes feel disconnected | Added an expandable uncommitted-changes row, direct file diffs, and an optional automatic dirty-file diff   | Commit history and current work form one continuous workflow                |
-| A derivative needs a clear identity    | Renamed the extension and namespace, added independent release metadata, and preserved upstream MIT notices | The fork can be maintained and released independently and transparently     |
+| Original limitation                    | Zeeho Git Graph change                                                                                                           | Result                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| The graph occupies an editor tab       | Replaced the `WebviewPanel` flow with a `WebviewViewProvider` registered in the Activity Bar                                     | Code and repository history stay visible at the same time                   |
+| A side bar has very little width       | Rebuilt the graph and details as a compact vertical layout with responsive 720, 520, and 420 px breakpoints                      | Commits, refs, and changed files remain usable in narrow views              |
+| Changed files are hard to scan         | Added neutral paths, status-coloured file names, C# badges, independent scrolling, and direct diff opening                       | Added, modified, deleted, and renamed files are immediately distinguishable |
+| Full-file blame creates visual noise   | Shows author and date only for selected lines, including multi-line and multi-cursor selections                                  | Blame appears on demand without covering the editor                         |
+| Working-tree changes feel disconnected | Added staged/unstaged panes, drag-and-drop staging, commits, sync actions, direct diffs, and optional automatic dirty-file diffs | Commit history and current work form one continuous workflow                |
+| A derivative needs a clear identity    | Renamed the extension and namespace, added independent release metadata, and preserved upstream MIT notices                      | The fork can be maintained and released independently and transparently     |
 
 ## Project origin
 
@@ -52,11 +52,20 @@ Zeeho Git Graph is not affiliated with or endorsed by either upstream project.
 - **Commit details pane:** Select a commit to inspect its metadata and changed files below the graph.
 - **Changed-file presentation:** Status colours, full paths, C# badges, single-click diffs, and double-click file opening.
 - **Selected-line blame:** Show the last author and date only for selected lines, including multiple cursors.
-- **Uncommitted changes:** Select the working-tree node to inspect changed files and open HEAD-to-working-tree diffs.
+- **SourceTree-style working copy:** Select the uncommitted node to stage or unstage files by drag-and-drop, buttons, or context menus; write commits in place; and run pull, push, merge, or rebase.
+- **Accurate working-copy diffs:** Staged files compare HEAD to the index, while unstaged files compare the index to the working tree—including partially staged files.
 - **Optional dirty-file diff:** Automatically open a HEAD-to-working-tree comparison for changed files.
 - **Branch, tag, and commit actions:** Common Git operations are available from the graph.
 - **Multi-repository support:** Discover and switch between repositories in one workspace.
 - **Localization:** English, Simplified Chinese, and Traditional Chinese.
+
+### Working-copy workflow
+
+Open **Uncommitted Changes** in the graph. The upper pane is the Git index and the lower pane is the
+working tree. Drag files between them, or right-click one or several selected files to stage or
+unstage them. A normal click opens the relevant diff; a double-click opens the working-tree file.
+Enter a message below the panes to commit the staged files. Pull, push, merge, and rebase remain
+confirmation-driven and report Git errors without hiding the working-copy state.
 
 ## Installation
 

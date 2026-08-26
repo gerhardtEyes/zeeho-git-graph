@@ -1,7 +1,18 @@
 import * as assert from "node:assert";
+import * as cp from "node:child_process";
+import * as fs from "node:fs";
+import * as os from "node:os";
+import * as path from "node:path";
 
+import { simpleGit } from "simple-git";
 import * as vscode from "vscode";
 
+import {
+  DiffDocProvider,
+  EMPTY_DIFF_REVISION,
+  encodeDiffDocUri,
+  INDEX_DIFF_REVISION
+} from "@/diffDocProvider";
 import { openWorkingTreeFile } from "@/extension/openFile";
 
 async function openView() {
@@ -101,5 +112,39 @@ suite("GitGraphView", () => {
     const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
     assert.ok(input instanceof vscode.TabInputText, "The real file should replace the diff tab");
     assert.strictEqual(input.uri.fsPath, file.fsPath);
+  });
+
+  test("serves current index content and an explicit empty diff document", async () => {
+    const repo = fs.mkdtempSync(path.join(os.tmpdir(), "zeeho-index-diff-"));
+    const run = (args: string[]) => cp.execFileSync("git", args, { cwd: repo, stdio: "pipe" });
+    try {
+      run(["init", "-b", "main"]);
+      run(["config", "user.email", "test@example.com"]);
+      run(["config", "user.name", "Test"]);
+      fs.writeFileSync(path.join(repo, "sample.txt"), "original\n");
+      run(["add", "."]);
+      run(["commit", "-m", "initial"]);
+      fs.writeFileSync(path.join(repo, "sample.txt"), "staged content\n");
+      run(["add", "sample.txt"]);
+      fs.writeFileSync(path.join(repo, "sample.txt"), "working content\n");
+
+      const client = simpleGit(repo);
+      const provider = new DiffDocProvider(() => client);
+      try {
+        const index = await provider.provideTextDocumentContent(
+          encodeDiffDocUri(repo, "sample.txt", INDEX_DIFF_REVISION, "test-index")
+        );
+        const empty = await provider.provideTextDocumentContent(
+          encodeDiffDocUri(repo, "sample.txt", EMPTY_DIFF_REVISION, "test-empty")
+        );
+
+        assert.strictEqual(index, "staged content\n");
+        assert.strictEqual(empty, "");
+      } finally {
+        provider.dispose();
+      }
+    } finally {
+      fs.rmSync(repo, { recursive: true, force: true });
+    }
   });
 });

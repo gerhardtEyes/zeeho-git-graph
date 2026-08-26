@@ -47,8 +47,14 @@ export type GitCommitDetails = {
   committer: string;
   body: string;
   fileChanges: GitFileChange[];
+  /** Index changes, present only for the synthetic uncommitted-changes row. */
+  stagedFileChanges?: GitFileChange[];
+  /** Working-tree and untracked changes, present only for the synthetic row. */
+  unstagedFileChanges?: GitFileChange[];
 };
 
-export type GitFileChangeType = "A" | "M" | "D" | "R";
+export type GitFileChangeType = "A" | "M" | "D" | "R" | "U";
+export type GitDiffScope = "commit" | "working" | "staged" | "unstaged";
 export type DateType = "Author Date" | "Commit Date";
 export type GitResetMode = "soft" | "mixed" | "hard";
+export type GitPullStrategy = "ff-only" | "merge" | "rebase";

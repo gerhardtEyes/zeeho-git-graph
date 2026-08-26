@@ -10,14 +10,24 @@ import {
 } from "@/backend/actions/commit";
 import { mergeBranch, mergeCommit } from "@/backend/actions/merge";
 import { addTag, deleteTag, pushTag } from "@/backend/actions/tag";
+import {
+  commitChanges,
+  pullCurrentBranch,
+  pushCurrentBranch,
+  rebaseBranch,
+  stageAll,
+  stageFiles,
+  unstageAll,
+  unstageFiles
+} from "@/backend/actions/workingTree";
 import { GitClient } from "@/backend/gitClient";
 import { commitDetails } from "@/backend/queries/commitDetails";
 import { loadBranches } from "@/backend/queries/loadBranches";
 import { loadCommits } from "@/backend/queries/loadCommits";
-import { GitFileChangeType } from "@/backend/types";
+import { GitDiffScope, GitFileChangeType } from "@/backend/types";
 import { abbrevCommit } from "@/backend/utils/string";
 import { Config } from "@/config";
-import { encodeDiffDocUri } from "@/diffDocProvider";
+import { EMPTY_DIFF_REVISION, encodeDiffDocUri, INDEX_DIFF_REVISION } from "@/diffDocProvider";
 import { openWorkingTreeFile } from "@/extension/openFile";
 import { copyToClipboard } from "@/extension/utils/clipboard";
 import { ExtensionState } from "@/extensionState";
@@ -27,25 +37,37 @@ import { RequestMessage, ResponseMessage } from "@/types";
 import { RepoManager } from "./repoManager";
 import { WebviewBridge } from "./webviewBridge";
 
+let workingTreeDiffSequence = 0;
+
 function viewDiff(
   repo: string,
   commitHash: string,
   oldFilePath: string,
   newFilePath: string,
-  type: GitFileChangeType
+  type: GitFileChangeType,
+  scope: GitDiffScope
 ): Promise<boolean> {
   if (commitHash === "*") {
+    const effectiveScope = type === "U" ? "working" : scope;
+    const cacheKey = String(++workingTreeDiffSequence);
     const pathComponents = newFilePath.split("/");
-    const title = vscode.l10n.t(
-      "{0} (HEAD ↔ Working Tree)",
-      pathComponents[pathComponents.length - 1]
-    );
-    const emptyDocument = encodeDiffDocUri(repo, newFilePath, "");
-    const left = type === "A" ? emptyDocument : encodeDiffDocUri(repo, oldFilePath, "HEAD");
+    const fileName = pathComponents[pathComponents.length - 1];
+    const title =
+      effectiveScope === "staged"
+        ? vscode.l10n.t("{0} (HEAD ↔ Index)", fileName)
+        : effectiveScope === "unstaged"
+          ? vscode.l10n.t("{0} (Index ↔ Working Tree)", fileName)
+          : vscode.l10n.t("{0} (HEAD ↔ Working Tree)", fileName);
+    const emptyDocument = encodeDiffDocUri(repo, newFilePath, EMPTY_DIFF_REVISION, cacheKey);
+    const leftRevision = effectiveScope === "unstaged" ? INDEX_DIFF_REVISION : "HEAD";
+    const left =
+      type === "A" ? emptyDocument : encodeDiffDocUri(repo, oldFilePath, leftRevision, cacheKey);
     const right =
       type === "D"
         ? emptyDocument
-        : vscode.Uri.joinPath(vscode.Uri.file(repo), ...newFilePath.split("/"));
+        : effectiveScope === "staged"
+          ? encodeDiffDocUri(repo, newFilePath, INDEX_DIFF_REVISION, cacheKey)
+          : vscode.Uri.joinPath(vscode.Uri.file(repo), ...newFilePath.split("/"));
 
     return Promise.resolve(
       vscode.commands.executeCommand("vscode.diff", left, right, title, { preview: true })
@@ -135,6 +157,14 @@ export function registerMessageHandlers(
   registerAction("resetToCommit", (msg) => resetToCommit(gitClient.getInstance(), msg));
   registerAction("mergeBranch", (msg) => mergeBranch(gitClient.getInstance(), msg));
   registerAction("mergeCommit", (msg) => mergeCommit(gitClient.getInstance(), msg));
+  registerAction("stageFiles", (msg) => stageFiles(gitClient.getInstance(), msg));
+  registerAction("unstageFiles", (msg) => unstageFiles(gitClient.getInstance(), msg));
+  registerAction("stageAll", () => stageAll(gitClient.getInstance()));
+  registerAction("unstageAll", () => unstageAll(gitClient.getInstance()));
+  registerAction("commitChanges", (msg) => commitChanges(gitClient.getInstance(), msg));
+  registerAction("pushCurrentBranch", () => pushCurrentBranch(gitClient.getInstance()));
+  registerAction("pullCurrentBranch", (msg) => pullCurrentBranch(gitClient.getInstance(), msg));
+  registerAction("rebaseBranch", (msg) => rebaseBranch(gitClient.getInstance(), msg));
 
   // --- Query handlers ---
 
@@ -220,7 +250,14 @@ export function registerMessageHandlers(
   bridge.onMessage("viewDiff", async (msg) => {
     bridge.post({
       command: "viewDiff",
-      success: await viewDiff(msg.repo, msg.commitHash, msg.oldFilePath, msg.newFilePath, msg.type)
+      success: await viewDiff(
+        msg.repo,
+        msg.commitHash,
+        msg.oldFilePath,
+        msg.newFilePath,
+        msg.type,
+        msg.scope
+      )
     });
   });
 

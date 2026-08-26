@@ -1,6 +1,6 @@
 import { computed, signal } from "@preact/signals";
 
-import type { GitCommitDetails, GitCommitNode } from "@/backend/types";
+import type { ActionResponse, GitCommitDetails, GitCommitNode } from "@/backend/types";
 import type { GitRepoSet } from "@/types";
 import type {
   ActionRequestState,
@@ -38,6 +38,8 @@ export const openFileRequest = signal<OpenFileRequest | null>(null);
 export const clipboardRequest = signal<ClipboardRequest | null>(null);
 /** Last git action the user confirmed. `lib/sync.ts` sends it to the editor. */
 export const actionRequest = signal<ActionRequestState | null>(null);
+/** Last completed git action, used by inline controls such as the commit box. */
+export const actionResult = signal<ActionResponse | null>(null);
 
 /** The open context menu, or `null` when none is open. Only one opens at a time. */
 export const contextMenu = signal<ContextMenuState | null>(null);

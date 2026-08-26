@@ -96,6 +96,11 @@
     box-shadow: 0 -6px 12px -8px var(--vscode-widget-shadow);
   }
 
+  .git-graph-working-tree-pane {
+    height: min(64vh, 600px);
+    min-height: 310px;
+  }
+
   .git-graph-details-files {
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
@@ -166,5 +171,10 @@
 @media (max-width: 420px) {
   .git-graph-details-pane {
     height: min(42vh, 340px);
+  }
+
+  .git-graph-working-tree-pane {
+    height: min(70vh, 620px);
+    min-height: 340px;
   }
 }

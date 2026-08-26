@@ -6,10 +6,14 @@
 
 - Double-click a changed file to close its active comparison and open the real working-tree file
 - Fall back to the old path when a renamed file no longer exists at its new path
+- Split Uncommitted Changes into staged and unstaged panes, including partially staged files
+- Stage and unstage selected files through drag-and-drop, context menus, and all-files actions
+- Commit staged changes and run pull, push, merge, or rebase from the compact details pane
 
 ### Changed
 
 - Keep single-click diff opening distinct from double-click file opening, including keyboard access and binary-file opening
+- Compare staged files as HEAD-to-index and unstaged files as index-to-working-tree
 
 ## [0.6.4] - 2026-08-25
 
