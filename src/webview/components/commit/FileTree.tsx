@@ -1,13 +1,14 @@
-import { useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import type { GitFileChange } from "@/backend/types";
 import { Icon } from "@/webview/components/ui/Icons";
-import { viewDiff } from "@/webview/lib/actions";
+import { openFile, viewDiff } from "@/webview/lib/actions";
 import { isCSharpFile, splitFilePath } from "@/webview/utils/filePresentation";
 import type { FileTreeNode } from "@/webview/utils/fileTree";
 
 const ICON_CLASS = "mr-2 size-3.25 shrink-0 fill-fg opacity-60";
 const ENTRY_CLASS = "flex w-full items-center overflow-hidden text-left whitespace-nowrap";
+const SINGLE_CLICK_DELAY = 250;
 
 const FILE_COLOUR: Record<GitFileChange["type"], string> = {
   A: "text-file-added",
@@ -101,16 +102,43 @@ function FileEntry({
   const binary = file.additions === null || file.deletions === null;
   const showAddDel = file.type !== "A" && file.type !== "D";
   const pathParts = splitFilePath(name);
+  const pendingClick = useRef<number | null>(null);
+
+  function cancelPendingClick() {
+    if (pendingClick.current !== null) {
+      window.clearTimeout(pendingClick.current);
+      pendingClick.current = null;
+    }
+  }
+
+  useEffect(() => cancelPendingClick, []);
 
   return (
     <button
       type="button"
       class={`${ENTRY_CLASS} ${fullPath ? "text-fg" : FILE_COLOUR[file.type]} ${
         fullPath ? "items-start py-0.5 whitespace-normal" : ""
-      } ${binary ? "cursor-default" : "cursor-pointer"}`}
-      title={binary ? window.l10n.tooltipBinaryFile : name}
-      disabled={binary}
-      onClick={() => viewDiff(commitHash, file)}
+      } cursor-pointer`}
+      title={`${name}\n${
+        binary
+          ? `${window.l10n.tooltipBinaryFile}\n${window.l10n.tooltipOpenFile}`
+          : window.l10n.tooltipFileInteraction
+      }`}
+      onClick={(event) => {
+        if (binary || event.detail > 1) {
+          return;
+        }
+        cancelPendingClick();
+        pendingClick.current = window.setTimeout(() => {
+          pendingClick.current = null;
+          viewDiff(commitHash, file);
+        }, SINGLE_CLICK_DELAY);
+      }}
+      onDblClick={(event) => {
+        event.preventDefault();
+        cancelPendingClick();
+        openFile(file);
+      }}
     >
       <FileIcon filePath={name} />
       {fullPath ? (

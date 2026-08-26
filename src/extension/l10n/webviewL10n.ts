@@ -36,6 +36,7 @@ export function getWebviewLocalizedStrings() {
     ),
     unableToLoadCommitDetails: vscode.l10n.t("Unable to load commit details"),
     unableToCopyToClipboard: vscode.l10n.t("Unable to Copy {0} to Clipboard"),
+    unableToOpenFile: vscode.l10n.t("Unable to open file"),
     unableToViewDiff: vscode.l10n.t("Unable to view diff of file"),
     unableToAddTag: vscode.l10n.t("Unable to Add Tag"),
     unableToCheckoutBranch: vscode.l10n.t("Unable to Checkout Branch"),
@@ -130,6 +131,10 @@ export function getWebviewLocalizedStrings() {
 
     // File tooltips
     tooltipBinaryFile: vscode.l10n.t("This is a binary file, unable to view diff."),
+    tooltipFileInteraction: vscode.l10n.t(
+      "Single-click to view changes; double-click to open the file."
+    ),
+    tooltipOpenFile: vscode.l10n.t("Double-click to open the file."),
     tooltipRenamedTo: vscode.l10n.t("{0} was renamed to {1}"),
     tooltipAddition: vscode.l10n.t("{0} addition"),
     tooltipAdditions: vscode.l10n.t("{0} additions"),

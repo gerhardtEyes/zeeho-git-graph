@@ -6,6 +6,7 @@ import { handleCopyToClipboard } from "./handler/copy-to-clipboard";
 import { handleLoadBranches } from "./handler/load-branches";
 import { handleLoadCommits } from "./handler/load-commits";
 import { handleLoadRepos } from "./handler/load-repo";
+import { handleOpenFile } from "./handler/open-file";
 import { handleRefresh } from "./handler/refresh";
 import { handleViewDiff } from "./handler/view-diff";
 import { startSync } from "./sync";
@@ -36,6 +37,7 @@ const handlers: Handlers = {
   loadRepos: handleLoadRepos,
   loadBranches: handleLoadBranches,
   loadCommits: handleLoadCommits,
+  openFile: handleOpenFile,
   refresh: handleRefresh,
   viewDiff: handleViewDiff
 };

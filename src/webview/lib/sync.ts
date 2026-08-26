@@ -7,6 +7,7 @@ import {
   diffRequest,
   expandedCommit,
   maxCommits,
+  openFileRequest,
   refreshToken,
   repoStateRequest,
   selectedBranch,
@@ -160,6 +161,20 @@ export function startSync() {
       oldFilePath: request.file.oldFilePath,
       newFilePath: request.file.newFilePath,
       type: request.file.type
+    });
+  });
+
+  effect(() => {
+    const request = openFileRequest.value;
+    if (request === null) {
+      return;
+    }
+
+    vscode.postMessage({
+      command: "openFile",
+      repo: request.repo,
+      oldFilePath: request.file.oldFilePath,
+      newFilePath: request.file.newFilePath
     });
   });
 }

@@ -97,3 +97,11 @@ export type DiffRequest = {
   /** Bumped per request, so that opening one file twice is sent twice. */
   token: number;
 };
+
+/** A working-tree file the user asked to open directly. */
+export type OpenFileRequest = {
+  repo: string;
+  file: GitFileChange;
+  /** Bumped per request, so that opening one file twice is sent twice. */
+  token: number;
+};

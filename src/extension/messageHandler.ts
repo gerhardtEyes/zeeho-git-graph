@@ -18,6 +18,7 @@ import { GitFileChangeType } from "@/backend/types";
 import { abbrevCommit } from "@/backend/utils/string";
 import { Config } from "@/config";
 import { encodeDiffDocUri } from "@/diffDocProvider";
+import { openWorkingTreeFile } from "@/extension/openFile";
 import { copyToClipboard } from "@/extension/utils/clipboard";
 import { ExtensionState } from "@/extensionState";
 import { RepoFileWatcher } from "@/repoFileWatcher";
@@ -206,6 +207,13 @@ export function registerMessageHandlers(
       command: "copyToClipboard",
       type: msg.type,
       success: await copyToClipboard(msg.data)
+    });
+  });
+
+  bridge.onMessage("openFile", async (msg) => {
+    bridge.post({
+      command: "openFile",
+      success: await openWorkingTreeFile(msg.repo, msg.oldFilePath, msg.newFilePath)
     });
   });
 

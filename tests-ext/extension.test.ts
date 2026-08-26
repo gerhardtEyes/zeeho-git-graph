@@ -2,6 +2,8 @@ import * as assert from "node:assert";
 
 import * as vscode from "vscode";
 
+import { openWorkingTreeFile } from "@/extension/openFile";
+
 async function openView() {
   await vscode.commands.executeCommand("zeeho-git-graph.view");
   await new Promise((r) => setTimeout(r, 300));
@@ -79,5 +81,25 @@ suite("GitGraphView", () => {
 
     const tabsAfter = vscode.window.tabGroups.all.flatMap((g) => g.tabs).length;
     assert.strictEqual(tabsAfter, tabsBefore, "Second invocation should not open a new tab");
+  });
+
+  test("opens a real file after closing its matching diff", async () => {
+    const workspace = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspace, "Extension-host test workspace should exist");
+    const file = vscode.Uri.joinPath(workspace.uri, "README.md");
+
+    await vscode.commands.executeCommand("vscode.diff", file, file, "Temporary comparison", {
+      preview: true
+    });
+    assert.ok(
+      vscode.window.tabGroups.activeTabGroup.activeTab?.input instanceof vscode.TabInputTextDiff,
+      "The test should start with a diff tab"
+    );
+
+    const opened = await openWorkingTreeFile(workspace.uri.fsPath, "README.md", "README.md");
+    assert.strictEqual(opened, true);
+    const input = vscode.window.tabGroups.activeTabGroup.activeTab?.input;
+    assert.ok(input instanceof vscode.TabInputText, "The real file should replace the diff tab");
+    assert.strictEqual(input.uri.fsPath, file.fsPath);
   });
 });

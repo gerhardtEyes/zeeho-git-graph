@@ -9,6 +9,7 @@ import type {
   ContextMenuState,
   DialogState,
   DiffRequest,
+  OpenFileRequest,
   RepoStateRequest
 } from "@/webview/types";
 import { isColumnWidths } from "@/webview/utils/columns";
@@ -31,6 +32,8 @@ export const expandedCommit = signal<string | null>(null);
 export const commitDetails = signal<GitCommitDetails | null>(null);
 /** Last file diff the user asked for. `lib/sync.ts` sends it to the editor. */
 export const diffRequest = signal<DiffRequest | null>(null);
+/** Last working-tree file the user asked to open directly. */
+export const openFileRequest = signal<OpenFileRequest | null>(null);
 /** Last copy the user asked for. `lib/sync.ts` sends it to the editor. */
 export const clipboardRequest = signal<ClipboardRequest | null>(null);
 /** Last git action the user confirmed. `lib/sync.ts` sends it to the editor. */

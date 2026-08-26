@@ -16,6 +16,7 @@ import {
   headBranch,
   maxCommits,
   moreCommitsAvailable,
+  openFileRequest,
   refreshToken,
   repoStateRequest,
   repoStates,
@@ -234,5 +235,19 @@ export function viewDiff(commitHash: string, file: GitFileChange) {
     commitHash,
     file,
     token: (diffRequest.value?.token ?? 0) + 1
+  };
+}
+
+/** Ask the editor to close this file's diff, then open its working-tree file. */
+export function openFile(file: GitFileChange) {
+  const repo = selectedRepo.value;
+  if (repo === undefined) {
+    return;
+  }
+
+  openFileRequest.value = {
+    repo,
+    file,
+    token: (openFileRequest.value?.token ?? 0) + 1
   };
 }

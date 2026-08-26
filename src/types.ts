@@ -100,6 +100,17 @@ export type ResponseViewDiff = {
   success: boolean;
 };
 
+export type RequestOpenFile = {
+  command: "openFile";
+  repo: string;
+  oldFilePath: string;
+  newFilePath: string;
+};
+export type ResponseOpenFile = {
+  command: "openFile";
+  success: boolean;
+};
+
 export type ResponseRefresh = {
   command: "refresh";
 };
@@ -112,6 +123,7 @@ export type RequestMessage =
   | RequestLoadRepos
   | RequestSaveRepoState
   | RequestCopyToClipboard
+  | RequestOpenFile
   | RequestViewDiff;
 
 export type ResponseMessage =
@@ -120,5 +132,6 @@ export type ResponseMessage =
   | ResponseFetchAvatar
   | ResponseLoadRepos
   | ResponseCopyToClipboard
+  | ResponseOpenFile
   | ResponseViewDiff
   | ResponseRefresh;

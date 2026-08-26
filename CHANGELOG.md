@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- Double-click a changed file to close its active comparison and open the real working-tree file
+- Fall back to the old path when a renamed file no longer exists at its new path
+
+### Changed
+
+- Keep single-click diff opening distinct from double-click file opening, including keyboard access and binary-file opening
+
 ## [0.6.4] - 2026-08-25
 
 ### Added

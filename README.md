@@ -50,7 +50,7 @@ Zeeho Git Graph is not affiliated with or endorsed by either upstream project.
 - **Activity Bar view:** Keep the graph in the VS Code side bar instead of an editor tab.
 - **Compact commit graph:** Responsive layout designed for narrow side bars.
 - **Commit details pane:** Select a commit to inspect its metadata and changed files below the graph.
-- **Changed-file presentation:** Status colours, full paths, C# badges, and direct diff opening.
+- **Changed-file presentation:** Status colours, full paths, C# badges, single-click diffs, and double-click file opening.
 - **Selected-line blame:** Show the last author and date only for selected lines, including multiple cursors.
 - **Uncommitted changes:** Select the working-tree node to inspect changed files and open HEAD-to-working-tree diffs.
 - **Optional dirty-file diff:** Automatically open a HEAD-to-working-tree comparison for changed files.

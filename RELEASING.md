@@ -8,7 +8,7 @@ or publishing to an extension registry still requires explicit release approval.
 - Repository target: `gerhardtEyes/zeeho-git-graph`
 - Package name: `zeeho-git-graph`
 - Display name: `Zeeho Git Graph`
-- Target version: `0.6.4`
+- Target version: `0.6.5`
 - Copyright holder for new modifications: `tamzeeho`
 - VS Marketplace Publisher ID: `Tamzeeho`
 - VS Marketplace Publisher display name: `TanZiHao`
@@ -62,11 +62,11 @@ pnpm run typecheck
 pnpm run l10n:check
 pnpm run test
 pnpm run test:ext
-PUBLIC_RELEASE=true EXPECTED_PUBLISHER=Tamzeeho EXPECTED_VERSION=0.6.4 pnpm run release:check
+PUBLIC_RELEASE=true EXPECTED_PUBLISHER=Tamzeeho EXPECTED_VERSION=0.6.5 pnpm run release:check
 pnpm run package
-pnpm dlx @vscode/vsce package --no-dependencies --out zeeho-git-graph-0.6.4.vsix
-unzip -t zeeho-git-graph-0.6.4.vsix
-shasum -a 256 zeeho-git-graph-0.6.4.vsix
+pnpm dlx @vscode/vsce package --no-dependencies --out zeeho-git-graph-0.6.5.vsix
+unzip -t zeeho-git-graph-0.6.5.vsix
+shasum -a 256 zeeho-git-graph-0.6.5.vsix
 ```
 
 Also verify that the VSIX contains `LICENSE`, `THIRD_PARTY_NOTICES.md`, and generated legal-notice
@@ -80,8 +80,8 @@ files, and does not contain credentials or private development files.
 4. Create the tag only after CI is green:
 
    ```sh
-   git tag -s v0.6.4 -m "Zeeho Git Graph v0.6.4"
-   git push origin v0.6.4
+   git tag -s v0.6.5 -m "Zeeho Git Graph v0.6.5"
+   git push origin v0.6.5
    ```
 
 5. Verify the GitHub Release, VS Marketplace, and Open VSX listings all use the same VSIX and
