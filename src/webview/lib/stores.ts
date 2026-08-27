@@ -41,6 +41,10 @@ export const actionRequest = signal<ActionRequestState | null>(null);
 /** Last completed git action, used by inline controls such as the commit box. */
 export const actionResult = signal<ActionResponse | null>(null);
 
+/** Shared presentation preferences for committed and working-tree file changes. */
+export const changedFilesViewMode = signal<"flat" | "tree">("flat");
+export const changedFilesTypeFilter = signal<string>("*");
+
 /** The open context menu, or `null` when none is open. Only one opens at a time. */
 export const contextMenu = signal<ContextMenuState | null>(null);
 /** The open dialog, or `null` when none is open. Only one opens at a time. */

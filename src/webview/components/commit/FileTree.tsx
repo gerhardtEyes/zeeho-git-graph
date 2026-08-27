@@ -1,10 +1,12 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import type { ComponentChildren } from "preact";
+import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 
 import type { GitDiffScope, GitFileChange } from "@/backend/types";
 import { Icon } from "@/webview/components/ui/Icons";
 import { openFile, viewDiff } from "@/webview/lib/actions";
 import { isCSharpFile, splitFilePath } from "@/webview/utils/filePresentation";
 import type { FileTreeNode } from "@/webview/utils/fileTree";
+import { buildFileTree } from "@/webview/utils/fileTree";
 
 const ICON_CLASS = "mr-2 size-3.25 shrink-0 fill-fg opacity-60";
 const ENTRY_CLASS = "flex w-full items-center overflow-hidden text-left whitespace-nowrap";
@@ -190,41 +192,52 @@ export function FileEntry({
 /** Compact flat list used by the narrow commit-details pane. */
 export function ChangedFileList({
   files,
-  commitHash
+  commitHash,
+  viewMode = "flat"
 }: {
   files: Array<GitFileChange>;
   commitHash: string;
+  viewMode?: "flat" | "tree";
 }) {
   return (
-    <ul class="list-none px-1.5 py-1">
-      {files.map((file) => (
-        <li
-          key={`${file.oldFilePath}-${file.newFilePath}`}
-          class="rounded px-1.5 py-0.5 hover:bg-btn-hover"
-        >
-          <FileEntry name={file.newFilePath} file={file} commitHash={commitHash} fullPath />
-        </li>
-      ))}
-    </ul>
+    <ChangedFileCollection
+      files={files}
+      viewMode={viewMode}
+      commitHash={commitHash}
+      renderFile={(file, name, fullPath) => (
+        <FileEntry name={name} file={file} commitHash={commitHash} fullPath={fullPath} />
+      )}
+    />
   );
 }
+
+export type ChangedFileRenderer = (
+  file: GitFileChange,
+  name: string,
+  fullPath: boolean
+) => ComponentChildren;
 
 type TreeProps = {
   nodes: Array<FileTreeNode>;
   commitHash: string;
   closed: ReadonlySet<string>;
   onToggle: (path: string) => void;
+  renderFile?: ChangedFileRenderer;
   root?: boolean;
 };
 
-function Tree({ nodes, commitHash, closed, onToggle, root = false }: TreeProps) {
+function Tree({ nodes, commitHash, closed, onToggle, renderFile, root = false }: TreeProps) {
   return (
     <ul class={`list-none ${root ? "pl-2.5" : "pl-7.5"}`}>
       {nodes.map((node) => {
         if (node.type === "file") {
           return (
             <li key={node.file.newFilePath} class="mt-1 overflow-hidden">
-              <FileEntry name={node.name} file={node.file} commitHash={commitHash} />
+              {renderFile === undefined ? (
+                <FileEntry name={node.name} file={node.file} commitHash={commitHash} />
+              ) : (
+                renderFile(node.file, node.name, false)
+              )}
             </li>
           );
         }
@@ -248,12 +261,65 @@ function Tree({ nodes, commitHash, closed, onToggle, root = false }: TreeProps) 
                 commitHash={commitHash}
                 closed={closed}
                 onToggle={onToggle}
+                renderFile={renderFile}
               />
             )}
           </li>
         );
       })}
     </ul>
+  );
+}
+
+/** A flat or folder-tree presentation with caller-owned file interactions. */
+export function ChangedFileCollection({
+  files,
+  viewMode,
+  commitHash,
+  renderFile
+}: {
+  files: Array<GitFileChange>;
+  viewMode: "flat" | "tree";
+  commitHash: string;
+  renderFile: ChangedFileRenderer;
+}) {
+  const [closed, setClosed] = useState<ReadonlySet<string>>(() => new Set());
+  const nodes = useMemo(() => buildFileTree(files), [files]);
+
+  function toggle(path: string) {
+    setClosed((current) => {
+      const next = new Set(current);
+      if (!next.delete(path)) {
+        next.add(path);
+      }
+      return next;
+    });
+  }
+
+  if (viewMode === "flat") {
+    return (
+      <ul class="list-none px-1.5 py-1">
+        {files.map((file) => (
+          <li
+            key={`${file.oldFilePath}-${file.newFilePath}`}
+            class="rounded px-1.5 py-0.5 hover:bg-btn-hover"
+          >
+            {renderFile(file, file.newFilePath, true)}
+          </li>
+        ))}
+      </ul>
+    );
+  }
+
+  return (
+    <Tree
+      nodes={nodes}
+      commitHash={commitHash}
+      closed={closed}
+      onToggle={toggle}
+      renderFile={renderFile}
+      root
+    />
   );
 }
 

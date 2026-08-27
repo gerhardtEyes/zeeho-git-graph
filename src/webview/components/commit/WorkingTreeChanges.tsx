@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "preact/hooks";
 
 import type { GitFileChange, GitPullStrategy } from "@/backend/types";
-import { FileEntry } from "@/webview/components/commit/FileTree";
+import { ChangedFilesToolbar } from "@/webview/components/commit/ChangedFilesToolbar";
+import { ChangedFileCollection, FileEntry } from "@/webview/components/commit/FileTree";
 import { Button } from "@/webview/components/ui/Button";
 import {
   openContextMenu,
@@ -9,8 +10,15 @@ import {
   openRunningDialog,
   runAction
 } from "@/webview/lib/actions";
-import { actionResult, branchList, headBranch } from "@/webview/lib/stores";
+import {
+  actionResult,
+  branchList,
+  changedFilesTypeFilter,
+  changedFilesViewMode,
+  headBranch
+} from "@/webview/lib/stores";
 import type { ContextMenuEntry } from "@/webview/types";
+import { filterFilesByType } from "@/webview/utils/fileFilter";
 import { format } from "@/webview/utils/format";
 
 const DRAG_MIME = "application/x-zeeho-git-files";
@@ -61,11 +69,13 @@ function fileMenu(area: ChangeArea, files: GitFileChange[]): Array<ContextMenuEn
 function ChangeSection({
   area,
   files,
+  visibleFiles,
   selection,
   onSelectionChange
 }: {
   area: ChangeArea;
   files: GitFileChange[];
+  visibleFiles: GitFileChange[];
   selection: ReadonlySet<string>;
   onSelectionChange: (selection: ReadonlySet<string>) => void;
 }) {
@@ -74,21 +84,23 @@ function ChangeSection({
   const staged = area === "staged";
 
   useEffect(() => {
-    const available = new Set(files.map(fileKey));
+    const available = new Set(visibleFiles.map(fileKey));
     const next = new Set([...selection].filter((key) => available.has(key)));
     if (next.size !== selection.size) {
       onSelectionChange(next);
     }
-  }, [files, onSelectionChange, selection]);
+  }, [onSelectionChange, selection, visibleFiles]);
 
   function choose(file: GitFileChange, event: MouseEvent) {
     const key = fileKey(file);
     if (event.shiftKey && lastSelected.current !== null) {
-      const start = files.findIndex((candidate) => fileKey(candidate) === lastSelected.current);
-      const end = files.findIndex((candidate) => fileKey(candidate) === key);
+      const start = visibleFiles.findIndex(
+        (candidate) => fileKey(candidate) === lastSelected.current
+      );
+      const end = visibleFiles.findIndex((candidate) => fileKey(candidate) === key);
       if (start !== -1 && end !== -1) {
         const [from, to] = start < end ? [start, end] : [end, start];
-        onSelectionChange(new Set(files.slice(from, to + 1).map(fileKey)));
+        onSelectionChange(new Set(visibleFiles.slice(from, to + 1).map(fileKey)));
         return;
       }
     }
@@ -106,7 +118,7 @@ function ChangeSection({
   }
 
   function startDrag(file: GitFileChange, event: DragEvent) {
-    const dragged = selectedFiles(files, selection, file);
+    const dragged = selectedFiles(visibleFiles, selection, file);
     if (!selection.has(fileKey(file))) {
       onSelectionChange(new Set([fileKey(file)]));
     }
@@ -164,7 +176,12 @@ function ChangeSection({
     >
       <header class="flex min-h-7 shrink-0 items-center gap-2 bg-btn px-2 py-0.5 text-xs font-semibold">
         <span class="min-w-0 grow truncate">
-          {format(staged ? window.l10n.stagedChanges : window.l10n.unstagedChanges, files.length)}
+          {format(
+            staged ? window.l10n.stagedChanges : window.l10n.unstagedChanges,
+            visibleFiles.length === files.length
+              ? files.length
+              : format(window.l10n.filteredFileCount, visibleFiles.length, files.length)
+          )}
         </span>
         <button
           type="button"
@@ -182,38 +199,43 @@ function ChangeSection({
         </button>
       </header>
       <div class="git-graph-details-files min-h-0 grow overflow-auto border-t border-line-soft">
-        {files.length === 0 ? (
+        {visibleFiles.length === 0 ? (
           <div class="flex h-full min-h-12 items-center justify-center px-3 text-center text-xs text-muted">
-            {staged ? window.l10n.dropFilesToStage : window.l10n.noUnstagedChanges}
+            {files.length > 0
+              ? window.l10n.noFilesMatchFilter
+              : staged
+                ? window.l10n.dropFilesToStage
+                : window.l10n.noUnstagedChanges}
           </div>
         ) : (
-          <ul class="list-none px-1.5 py-1">
-            {files.map((file) => {
+          <ChangedFileCollection
+            files={visibleFiles}
+            viewMode={changedFilesViewMode.value}
+            commitHash="*"
+            renderFile={(file, name, fullPath) => {
               const key = fileKey(file);
               return (
-                <li key={key} class="rounded px-1 py-0.5 hover:bg-btn-hover">
-                  <FileEntry
-                    name={file.newFilePath}
-                    file={file}
-                    commitHash="*"
-                    scope={area}
-                    fullPath
-                    selected={selection.has(key)}
-                    draggable
-                    onSelect={(event) => choose(file, event)}
-                    onDragStart={(event) => startDrag(file, event)}
-                    onContextMenu={(event) => {
-                      const chosen = selectedFiles(files, selection, file);
-                      if (!selection.has(key)) {
-                        onSelectionChange(new Set([key]));
-                      }
-                      openContextMenu(event, `working:${area}:${key}`, fileMenu(area, chosen));
-                    }}
-                  />
-                </li>
+                <FileEntry
+                  name={name}
+                  file={file}
+                  commitHash="*"
+                  scope={area}
+                  fullPath={fullPath}
+                  selected={selection.has(key)}
+                  draggable
+                  onSelect={(event) => choose(file, event)}
+                  onDragStart={(event) => startDrag(file, event)}
+                  onContextMenu={(event) => {
+                    const chosen = selectedFiles(visibleFiles, selection, file);
+                    if (!selection.has(key)) {
+                      onSelectionChange(new Set([key]));
+                    }
+                    openContextMenu(event, `working:${area}:${key}`, fileMenu(area, chosen));
+                  }}
+                />
               );
-            })}
-          </ul>
+            }}
+          />
         )}
       </div>
     </section>
@@ -341,6 +363,9 @@ export function WorkingTreeChanges({
   const [unstagedSelection, setUnstagedSelection] = useState<ReadonlySet<string>>(() => new Set());
   const [message, setMessage] = useState("");
   const completedAction = actionResult.value;
+  const allFiles = [...stagedFiles, ...unstagedFiles];
+  const visibleStagedFiles = filterFilesByType(stagedFiles, changedFilesTypeFilter.value);
+  const visibleUnstagedFiles = filterFilesByType(unstagedFiles, changedFilesTypeFilter.value);
 
   useEffect(() => {
     if (completedAction?.command === "commitChanges" && completedAction.status === null) {
@@ -360,16 +385,23 @@ export function WorkingTreeChanges({
   return (
     <div class="flex h-full min-h-0 w-full min-w-0 grow flex-col overflow-hidden">
       <GitOperations />
+      <ChangedFilesToolbar
+        files={allFiles}
+        visibleCount={visibleStagedFiles.length + visibleUnstagedFiles.length}
+        label={window.l10n.changedFiles}
+      />
       <div class="flex min-h-0 grow flex-col gap-1.5 overflow-hidden p-1.5">
         <ChangeSection
           area="staged"
           files={stagedFiles}
+          visibleFiles={visibleStagedFiles}
           selection={stagedSelection}
           onSelectionChange={setStagedSelection}
         />
         <ChangeSection
           area="unstaged"
           files={unstagedFiles}
+          visibleFiles={visibleUnstagedFiles}
           selection={unstagedSelection}
           onSelectionChange={setUnstagedSelection}
         />

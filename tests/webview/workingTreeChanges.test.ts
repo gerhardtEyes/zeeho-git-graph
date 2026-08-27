@@ -10,6 +10,8 @@ import type { WorkingTreeChanges as WorkingTreeChangesType } from "@/webview/com
 
 let WorkingTreeChanges: typeof WorkingTreeChangesType;
 let actionRequest: typeof import("@/webview/lib/stores").actionRequest;
+let changedFilesTypeFilter: typeof import("@/webview/lib/stores").changedFilesTypeFilter;
+let changedFilesViewMode: typeof import("@/webview/lib/stores").changedFilesViewMode;
 let contextMenu: typeof import("@/webview/lib/stores").contextMenu;
 let selectedRepo: typeof import("@/webview/lib/stores").selectedRepo;
 
@@ -66,15 +68,32 @@ beforeAll(async () => {
   });
   Object.defineProperty(window, "l10n", {
     configurable: true,
-    value: new Proxy({}, { get: (_target, key) => String(key) }) as typeof window.l10n
+    value: new Proxy(
+      {},
+      {
+        get: (_target, key) =>
+          key === "changedFiles"
+            ? "Changes ({0})"
+            : key === "stagedChanges"
+              ? "Staged Changes ({0})"
+              : key === "unstagedChanges"
+                ? "Unstaged Changes ({0})"
+                : key === "filteredFileCount"
+                  ? "{0}/{1}"
+                  : String(key)
+      }
+    ) as typeof window.l10n
   });
 
   ({ WorkingTreeChanges } = await import("@/webview/components/commit/WorkingTreeChanges"));
-  ({ actionRequest, contextMenu, selectedRepo } = await import("@/webview/lib/stores"));
+  ({ actionRequest, changedFilesTypeFilter, changedFilesViewMode, contextMenu, selectedRepo } =
+    await import("@/webview/lib/stores"));
 });
 
 beforeEach(() => {
   actionRequest.value = null;
+  changedFilesTypeFilter.value = "*";
+  changedFilesViewMode.value = "flat";
   contextMenu.value = null;
   selectedRepo.value = "/repo";
   document.body.replaceChildren();
@@ -151,5 +170,60 @@ describe("WorkingTreeChanges", () => {
       paths: ["src/changed.cs"],
       repo: "/repo"
     });
+  });
+
+  it("filters both working-copy panes to C# with one click", () => {
+    const typescript = {
+      ...modified,
+      oldFilePath: "src/changed.ts",
+      newFilePath: "src/changed.ts"
+    };
+    const container = document.createElement("div");
+    document.body.append(container);
+    act(() =>
+      render(
+        h(WorkingTreeChanges, {
+          stagedFiles: [typescript],
+          unstagedFiles: [modified, typescript]
+        }),
+        container
+      )
+    );
+
+    const csharpFilter = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "CS"
+    );
+    expect(csharpFilter).toBeDefined();
+    act(() => csharpFilter!.click());
+
+    expect(container.querySelector('button[title^="src/changed.cs"]')).not.toBeNull();
+    expect(container.querySelector('button[title^="src/changed.ts"]')).toBeNull();
+    expect(container.textContent).toContain("1/2");
+  });
+
+  it("keeps staging interactions available in tree view", () => {
+    const container = document.createElement("div");
+    document.body.append(container);
+    act(() =>
+      render(h(WorkingTreeChanges, { stagedFiles: [], unstagedFiles: [modified] }), container)
+    );
+
+    const treeView = container.querySelector<HTMLButtonElement>('button[title="switchToTreeView"]');
+    expect(treeView).not.toBeNull();
+    act(() => treeView!.click());
+
+    const folder = [
+      ...container.querySelectorAll<HTMLButtonElement>('button[aria-expanded="true"]')
+    ].find((button) => button.textContent?.includes("src"));
+    const file = container.querySelector<HTMLButtonElement>('button[title^="changed.cs"]');
+    expect(folder).toBeDefined();
+    expect(file).not.toBeNull();
+
+    act(() => {
+      file!.dispatchEvent(
+        new MouseEvent("contextmenu", { bubbles: true, clientX: 20, clientY: 30 })
+      );
+    });
+    expect(contextMenu.value?.entries[0]).not.toBeNull();
   });
 });

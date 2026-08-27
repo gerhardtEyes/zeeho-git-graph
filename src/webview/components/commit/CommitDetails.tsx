@@ -1,12 +1,15 @@
 import type { GitCommitDetails } from "@/backend/types";
 import { abbrevCommit } from "@/backend/utils/string";
+import { ChangedFilesToolbar } from "@/webview/components/commit/ChangedFilesToolbar";
 import { ChangedFileList } from "@/webview/components/commit/FileTree";
 import { WorkingTreeChanges } from "@/webview/components/commit/WorkingTreeChanges";
 import { Icon } from "@/webview/components/ui/Icons";
 import { Loading } from "@/webview/components/ui/Loading";
 import { UNCOMMITTED_CHANGES } from "@/webview/constants";
 import { closeCommitDetails } from "@/webview/lib/actions";
+import { changedFilesTypeFilter, changedFilesViewMode } from "@/webview/lib/stores";
 import { getCommitDate } from "@/webview/utils/date";
+import { filterFilesByType } from "@/webview/utils/fileFilter";
 import { format } from "@/webview/utils/format";
 
 function Summary({ details }: { details: GitCommitDetails }) {
@@ -44,10 +47,35 @@ function Summary({ details }: { details: GitCommitDetails }) {
   );
 }
 
+function CommittedFiles({ details }: { details: GitCommitDetails }) {
+  const files = filterFilesByType(details.fileChanges, changedFilesTypeFilter.value);
+
+  return (
+    <>
+      <ChangedFilesToolbar
+        files={details.fileChanges}
+        visibleCount={files.length}
+        label={window.l10n.changedFiles}
+      />
+      <div class="git-graph-details-files min-h-0 grow overflow-auto">
+        {files.length === 0 && details.fileChanges.length > 0 ? (
+          <div class="flex h-full min-h-12 items-center justify-center px-3 text-center text-xs text-muted">
+            {window.l10n.noFilesMatchFilter}
+          </div>
+        ) : (
+          <ChangedFileList
+            files={files}
+            commitHash={details.hash}
+            viewMode={changedFilesViewMode.value}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
 /** Commit details in a fixed pane below the independently scrolling graph. */
 export function CommitDetails({ details }: { details: GitCommitDetails | null }) {
-  const fileCount = details?.fileChanges.length ?? 0;
-
   return (
     <section
       class={`git-graph-details-pane relative flex shrink-0 flex-col overflow-hidden border-t border-line bg-editor text-ui leading-4.5 whitespace-normal ${
@@ -65,14 +93,7 @@ export function CommitDetails({ details }: { details: GitCommitDetails | null })
           unstagedFiles={details.unstagedFileChanges ?? details.fileChanges}
         />
       ) : (
-        <>
-          <div class="shrink-0 px-2 py-1 text-xs font-semibold text-muted uppercase">
-            {format(window.l10n.changedFiles, fileCount)}
-          </div>
-          <div class="git-graph-details-files min-h-0 grow overflow-auto border-t border-line-soft">
-            <ChangedFileList files={details.fileChanges} commitHash={details.hash} />
-          </div>
-        </>
+        <CommittedFiles details={details} />
       )}
       <button
         type="button"

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+## [0.6.6] - 2026-08-27
+
+### Added
+
+- Switch changed files between compact list and collapsible folder-tree views
+- Filter committed, staged, and unstaged changes by detected file extension
+- Toggle a one-click C#-only filter while keeping all other extensions available in a compact selector
+
+### Changed
+
+- Share file-view preferences across historical commits and the working-copy panes
+- Keep selection, drag-and-drop, context menus, diffs, and direct file opening available in both views
+
 ## [0.6.5] - 2026-08-26
 
 ### Added
@@ -131,7 +144,8 @@
 
 Initial release
 
-[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.5...HEAD
+[Unreleased]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.6...HEAD
+[0.6.6]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.3...v0.6.4
 [0.6.3]: https://github.com/gerhardtEyes/zeeho-git-graph/compare/v0.6.2...v0.6.3

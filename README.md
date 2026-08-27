@@ -50,7 +50,7 @@ Zeeho Git Graph is not affiliated with or endorsed by either upstream project.
 - **Activity Bar view:** Keep the graph in the VS Code side bar instead of an editor tab.
 - **Compact commit graph:** Responsive layout designed for narrow side bars.
 - **Commit details pane:** Select a commit to inspect its metadata and changed files below the graph.
-- **Changed-file presentation:** Status colours, full paths, C# badges, single-click diffs, and double-click file opening.
+- **Changed-file presentation:** Toggle compact list or folder-tree views, filter by detected extension, use the one-click C# filter, and keep status colours, diffs, and direct file opening.
 - **Selected-line blame:** Show the last author and date only for selected lines, including multiple cursors.
 - **SourceTree-style working copy:** Select the uncommitted node to stage or unstage files by drag-and-drop, buttons, or context menus; write commits in place; and run pull, push, merge, or rebase.
 - **Accurate working-copy diffs:** Staged files compare HEAD to the index, while unstaged files compare the index to the working tree—including partially staged files.
@@ -66,6 +66,11 @@ working tree. Drag files between them, or right-click one or several selected fi
 unstage them. A normal click opens the relevant diff; a double-click opens the working-tree file.
 Enter a message below the panes to commit the staged files. Pull, push, merge, and rebase remain
 confirmation-driven and report Git errors without hiding the working-copy state.
+
+Use the shared change-list toolbar on either a historical commit or **Uncommitted Changes** to switch
+between list and tree views. Select any detected extension from the compact type selector, or press
+**CS** to show only C# files with one click. Filtering changes only what is visible; Git operations
+such as **Stage All** and **Unstage All** keep their repository-wide meaning.
 
 ## Installation
 
