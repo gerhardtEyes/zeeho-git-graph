@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@24
           cache: true
@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@24
           cache: true
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@24
 
@@ -118,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     steps:
-      - uses: pnpm/setup@v2
+      - uses: pnpm/setup@v3
         with:
           runtime: node@24
 
